@@ -1,6 +1,5 @@
 package org.dsh.personal.sudoku.presentation.about
 
-
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
@@ -20,9 +19,10 @@ import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Copyright
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Gite
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.Policy
-import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DividerDefaults
@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -61,10 +62,8 @@ fun AboutScreen(
     onHowToPlayClick: () -> Unit,
     appName: String,
     appVersion: String,
-    mailTo: String,
-    showPrivacyPolicyDialog: Boolean,
-    openPrivacyPolicy: () -> Unit,
-    dismissPrivacyPolicyDialog: () -> Unit,
+    playStoreUrl: String,
+    githubRepo: String,
 ) {
     val uriHandler = LocalUriHandler.current
 
@@ -72,7 +71,7 @@ fun AboutScreen(
     val developedByText = stringResource(R.string.developed_by, DEVELOPER_NAME)
     val copyrightText = stringResource(R.string.all_rights_reserved, Year.now().value, DEVELOPER_NAME)
     val gameDescription = stringResource(R.string.game_description_short)
-    val privacyEmail = stringResource(R.string.sudoku_policy_email)
+    val privacyPolicyUrl = stringResource(R.string.privacy_policy_url)
 
     Scaffold(
         topBar = {
@@ -121,21 +120,13 @@ fun AboutScreen(
             // FR4.1 How to Play
             // FR4.2 Feedback/Support
             // FR4.3 Privacy Policy
-            LinksSection(onHowToPlayClick, uriHandler, mailTo, openPrivacyPolicy)
+            LinksSection(onHowToPlayClick, uriHandler, privacyPolicyUrl, playStoreUrl, githubRepo)
 
             Spacer(Modifier.weight(1f)) // Pushes copyright to the bottom
 
             // FR2.2 Copyright Information
             CopyrightFooterSection(copyrightText)
         }
-    }
-
-    if (showPrivacyPolicyDialog) {
-        PrivacyPolicyDialog(
-            appName = appName,
-            contactEmail = privacyEmail,
-            onDismissRequest = dismissPrivacyPolicyDialog
-        )
     }
 }
 
@@ -154,33 +145,59 @@ private fun CopyrightFooterSection(copyrightText: String) {
 private fun LinksSection(
     onHowToPlayClick: () -> Unit,
     uriHandler: UriHandler,
-    mailTo: String,
-    openPrivacyPolicy: () -> Unit
+    privacyPolicyUrl: String,
+    playStoreUrl: String,
+    githubRepo: String,
 ) {
+    val context = LocalContext.current
+
     LinkItem(
         icon = Icons.AutoMirrored.Filled.HelpOutline,
         text = stringResource(R.string.how_to_play_sudoku),
-        onClick = onHowToPlayClick
+        onClick = onHowToPlayClick,
+        subicon = Icons.Filled.OpenInBrowser
     )
 
-    val context = LocalContext.current
+    LinkItem(
+        icon = Icons.Filled.Gite,
+        text = stringResource(R.string.sudoku_git_repo),
+        onClick = {
+            try {
+                uriHandler.openUri(githubRepo)
+            } catch (e: Exception) {
+                Log.e("AboutScreen", "Error opening URI", e)
+                Toast.makeText(context, R.string.something_went_wrong, Toast.LENGTH_SHORT).show()
+            }
+        },
+        subicon = Icons.Filled.OpenInBrowser
+    )
+
     LinkItem(
         icon = Icons.Filled.Email,
         text = stringResource(R.string.send_feedback),
         onClick = {
             try {
-                uriHandler.openUri(mailTo)
+                uriHandler.openUri(playStoreUrl)
             } catch (e: Exception) {
-                Log.e("AboutScreen", "Error opening mailto URI", e)
+                Log.e("AboutScreen", "Error opening URI", e)
                 Toast.makeText(context, R.string.something_went_wrong, Toast.LENGTH_SHORT).show()
             }
-        }
+        },
+        subicon = Icons.Filled.OpenInBrowser
     )
 
     LinkItem(
         icon = Icons.Filled.Policy,
         text = stringResource(R.string.privacy_policy),
-        onClick = openPrivacyPolicy
+        onClick = {
+            try {
+                uriHandler.openUri(privacyPolicyUrl)
+            } catch (e: Exception) {
+                Log.e("AboutScreen", "Error opening URI", e)
+                Toast.makeText(context, R.string.something_went_wrong, Toast.LENGTH_SHORT).show()
+            }
+        },
+        subicon = Icons.Filled.OpenInBrowser
     )
 }
 
@@ -207,7 +224,7 @@ private fun DeveloperSection(developedByText: String) {
 private fun AppHeaderSection(appName: String, versionText: String) {
 
     Icon(
-        imageVector = Icons.Filled.SportsEsports,
+        painter = painterResource(R.drawable.ic_launcher_foreground),
         contentDescription = stringResource(R.string.app_icon, appName),
         modifier = Modifier
             .size(Dimens.Image)
@@ -266,7 +283,7 @@ fun InfoItem(
 }
 
 @Composable
-fun LinkItem(icon: ImageVector, text: String, defaultElevation: Dp = Dimens.VerySmall, onClick: () -> Unit) {
+fun LinkItem(icon: ImageVector, subicon: ImageVector, text: String, defaultElevation: Dp = Dimens.VerySmall, onClick: () -> Unit) {
     Card(
         onClick = onClick,
         modifier = Modifier
@@ -293,6 +310,14 @@ fun LinkItem(icon: ImageVector, text: String, defaultElevation: Dp = Dimens.Very
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.primary
             )
+
+            Spacer(Modifier.weight(1f))
+            Icon(
+                imageVector = subicon,
+                contentDescription = null,
+                modifier = Modifier.size(Dimens.Icon),
+                tint = MaterialTheme.colorScheme.surfaceTint
+            )
         }
     }
 }
@@ -307,10 +332,8 @@ fun AboutScreenPreviewLight() {
             onHowToPlayClick = { },
             appName = stringResource(R.string.app_name),
             appVersion = "1.1.0",
-            mailTo = "",
-            showPrivacyPolicyDialog = false,
-            openPrivacyPolicy = {},
-            dismissPrivacyPolicyDialog = {},
+            playStoreUrl = "",
+            githubRepo = "githubRepo",
         )
     }
 }
@@ -326,10 +349,8 @@ fun AboutScreenPreviewDark() {
             onHowToPlayClick = { },
             appName = stringResource(R.string.app_name),
             appVersion = "1.1.0",
-            mailTo = "",
-            showPrivacyPolicyDialog = false,
-            openPrivacyPolicy = {},
-            dismissPrivacyPolicyDialog = {},
+            playStoreUrl = "",
+            githubRepo = "",
         )
     }
 }

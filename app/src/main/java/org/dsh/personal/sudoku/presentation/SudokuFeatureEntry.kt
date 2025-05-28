@@ -211,18 +211,16 @@ object SudokuFeatureEntry {
         val viewModel: AboutViewModel = koinViewModel()
         val uriHandler = LocalUriHandler.current
         val urlHowToPlay = stringResource(R.string.sudoku_how_to_play)
-        val feedbackEmail = stringResource(R.string.sudoku_feedback_email)
-        val mailTo = viewModel.buildFeedbackEmailUri(stringResource(R.string.app_name), viewModel.appVersionName, feedbackEmail)
+        val githubRepo = stringResource(R.string.sudoku_git_repo_url)
+        val playStoreUrl = stringResource(R.string.play_store_url)
 
         AboutScreen(
             appName = stringResource(R.string.app_name),
             onHowToPlayClick = { uriHandler.openUri(urlHowToPlay) },
             onNavigateBack = navController::popBackStack,
             appVersion = viewModel.appVersionName,
-            mailTo = mailTo,
-            openPrivacyPolicy = viewModel::onPrivacyPolicyClick,
-            dismissPrivacyPolicyDialog = viewModel::onDismissPrivacyPolicyDialog,
-            showPrivacyPolicyDialog = viewModel.showPrivacyPolicyDialog,
+            playStoreUrl = playStoreUrl,
+            githubRepo = githubRepo,
         )
     }
 

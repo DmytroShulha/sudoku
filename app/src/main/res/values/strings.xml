@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Personal Sudoku</string>
     <string name="unknown">Unknown</string>
     <string name="sudoku_how_to_play">https://sudoku.com/how-to-play/sudoku-rules-for-complete-beginners/</string>
@@ -42,7 +42,6 @@
     <string name="by_difficulty">By Difficulty</string>
     <string name="n_a">N/A</string>
     <string name="close">Close</string>
-    <string name="privacy_policy_text">"\n            Privacy Policy for %1$s\n\n            Data Collection:\n            %2$s is designed to provide an enjoyable Sudoku puzzle experience without collecting any personal information from you.\n\n            Internet Access:\n            This application does not require or use internet access. Your game progress and settings are stored only on your device.\n\n            Third-Party Services:\n            %3$s does not use third-party analytics, advertising, or other services that collect user data.\n\n            Changes to This Privacy Policy:\n            We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page.\n\n            Contact Us:\n            If you have any questions about this Privacy Policy, please contact us at %4$s.\n        "</string>
     <string name="select_difficulty_level">Select %1$s</string>
     <string name="select_difficulty">Select Difficulty</string>
     <string name="resume_game">Resume Game</string>
@@ -81,4 +80,8 @@
     <string name="clear">Clear</string>
     <string name="you_did_it">You did it!</string>
     <string name="something_went_wrong">Ops, something went wrong</string>
+    <string name="sudoku_git_repo">GitHub Repository</string>
+    <string name="sudoku_git_repo_url" translatable="false">https://github.com/DmytroShulha/sudoku</string>
+    <string name="privacy_policy_url" tools:ignore="Typos">https://docs.google.com/document/d/e/2PACX-1vSr-wPOpxBSuFCX4th8RrtFN4FZdhGJfN8UcRZebUyvMhk_VSwM7Teuu9ehTIyXevKv1MLPpdesh-JF/pub</string>
+    <string name="play_store_url">https://play.google.com/store/apps/details?id=org.dsh.personal.sudoku</string>
 </resources>
