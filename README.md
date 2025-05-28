@@ -4,33 +4,27 @@
 
 A classic Sudoku game for Android, built with Jetpack Compose.
 
----
-
-## Features
-
-*   Classic 9x9 Sudoku gameplay
-*   Difficulty Levels: [e.g., Easy, Medium, Hard, Extreme]
-*   Clean and Modern UI (Jetpack Compose)
-*   [Key Feature 1: e.g., Hint System]
-*   [Key Feature 2: e.g., Pencil Marks (Notes)]
-*   [Key Feature 3: e.g., Error Highlighting]
-*   [Key Feature 4: e.g., Light/Dark Theme]
----
-
-## Screenshots
-
-<!-- Keep it simple with 1-2 main screenshots -->
 |       Gameplay Screen        | Main Menu (Optional)                                  |
 |:----------------------------:| :---------------------------------------------------: |
 | ![Gameplay Screenshot](./screenshots/game.png) | ![Main Menu Screenshot](./screenshots/main.png) |
 
 ---
 
+## Features
+
+*   Classic 9x9 Sudoku gameplay
+*   Difficulty Levels: [Easy, Medium, Hard, Extreme]
+*   Clean and Modern UI (Jetpack Compose)
+*   Key Feature 1: Pencil Marks (Notes)
+*   Key Feature 2: Error Highlighting
+*   Key Feature 3: Light/Dark Theme
+---
+
 ## Tech Stack
 
 *   **Language:** Kotlin
 *   **UI:** Jetpack Compose
-*   **Architecture:** [e.g., MVVM]
+*   **Architecture:** MVVM
 *   **Core Libraries:**
     *   ViewModel
     *   Navigation Compose
@@ -65,6 +59,7 @@ A classic Sudoku game for Android, built with Jetpack Compose.
 
 Distributed under the GPLv3.0 License.
 https://www.gnu.org/licenses/gpl-3.0.en.html
+
 ---
 
 **Author:** Dmytro Shulha - https://github.com/DmytroShulha
