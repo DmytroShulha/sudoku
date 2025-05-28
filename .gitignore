@@ -14,3 +14,7 @@
 .cxx
 local.properties
 /app/release/
+/screenshots/
+/keystore/
+/.idea/
+/.kotlin/
