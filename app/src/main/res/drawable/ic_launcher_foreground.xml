@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <group
+        android:name="sudoku_grid_group"
+        android:pivotX="54"
+        android:pivotY="54"
+        android:scaleX="0.75"
+        android:scaleY="0.75">
+        <path
+            android:name="outer_border"
+            android:pathData="M13.5,13.5 H94.5 V94.5 H13.5 Z"
+            android:strokeWidth="1.5"
+            android:strokeColor="@color/primaryBlueLight"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+
+        <path
+            android:name="grid_3x3_lines"
+            android:pathData="
+                M13.5,40.5 H94.5  M13.5,67.5 H94.5  M40.5,13.5 V94.5  M67.5,13.5 V94.5  "
+            android:strokeWidth="1"
+            android:strokeColor="@color/primaryBlueLight"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+
+        <group android:name="filled_cells">
+            <path
+                android:fillColor="@color/colorSecondary"
+                android:pathData="M51.5,22 L53,20 L55,20 L55,34 L53,34 L53,22 Z" />
+
+            <path
+                android:fillColor="@color/colorSecondary"
+                android:pathData="M22,74 H31 V80 H30 V79 H30 V81 H30 V81 H31 V86 H22 V84 H29 V81 H22 V79 H29 V76 H22 V74 Z" />
+
+            <path
+                android:fillColor="@color/colorSurface"
+                android:pathData="M76,47 H85 V49 L79,61 H77 L83,49 H76 V47 Z" />
+        </group>
+    </group>
+</vector>
+
+
+    <!--
+    <path
+    android:fillColor="#FFFFFF"
+    android:pathData="M27,81m-5,0a5,5 0,1,1,10,0a5,5 0,1,1,-10,0" />
+
+    -->

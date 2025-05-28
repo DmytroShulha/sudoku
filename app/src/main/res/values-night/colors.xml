@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primaryBlue">#3D5AFE</color>
+    <color name="primaryBlueDark">#0031CA</color>
+    <color name="primaryBlueLight">#7A89FF</color>
+    <color name="accentOrange">#FFAB40</color>
+    <color name="accentOrangeDark">#C77C02</color>
+    <color name="accentOrangeLight">#FFDD72</color>
+
+    <color name="colorPrimary">@color/primaryBlueLight</color>
+    <color name="colorPrimaryVariant">@color/primaryBlue</color>
+    <color name="colorOnPrimary">#000000</color>
+    <color name="colorSecondary">@color/accentOrangeLight</color>
+    <color name="colorSecondaryVariant">@color/accentOrange</color>
+    <color name="colorOnSecondary">#000000</color>
+    <color name="colorError">#CF6679</color>
+    <color name="colorOnError">#000000</color>
+
+    <color name="colorBackground">#121212</color>
+    <color name="colorOnBackground">#E0E0E0</color>
+    <color name="colorOnBackgroundLauncher">#2AE0E0E0</color>
+    <color name="colorSurface">#1E1E1E</color>
+    <color name="colorOnSurface">#FFFFFF</color>
+    <color name="sudokuGridLineColor">#424242</color>
+    <color name="sudokuCellTextColor">#E0E0E0</color>
+    <color name="sudokuSelectedCellColor">@color/primaryBlueDark</color>
+    <color name="sudokuHighlightedCellColor">#4A463A</color>
+    <color name="sudokuConflictingCellColor">@color/accentOrange</color>
+    <color name="sudokuFixedNumberColor">#FFFFFF</color>
+    <color name="sudokuUserNumberColor">@color/primaryBlueLight</color>
+</resources>
