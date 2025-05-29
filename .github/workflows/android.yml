@@ -7,20 +7,38 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  build_and_test: # Renamed job for clarity
 
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: set up JDK 11
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
-        java-version: '11'
+        java-version: '17' # Updated to JDK 17
         distribution: 'temurin'
         cache: gradle
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
+
+    - name: Run Android Lint
+      run: ./gradlew lintDebug # Or your specific lint task, e.g., lintRelease
+
+    - name: Run unit tests
+      run: ./gradlew testDebugUnitTest # Or your specific test task, e.g., testReleaseUnitTest
+
     - name: Build with Gradle
-      run: ./gradlew build
+      run: ./gradlew assembleDebug # Or your specific build task, e.g., assembleRelease or bundleRelease
+
+    - name: Upload build artifacts (APK/AAB)
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-debug
+        path: |
+          app/build/outputs/apk/debug/app-debug.apk
+          # Example for AAB: app/build/outputs/bundle/release/app-release.aab
+        retention-days: 7
