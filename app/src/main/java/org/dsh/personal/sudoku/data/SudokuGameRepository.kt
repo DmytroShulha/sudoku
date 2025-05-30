@@ -1,6 +1,6 @@
 package org.dsh.personal.sudoku.data
 
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -16,30 +16,32 @@ import org.dsh.personal.sudoku.domain.entity.SudokuGameStats
 class SudokuGameRepository(
     private val gameStorage: CurrentGameStorage,
     private val entryDao: EntryDao,
+    private val ioDispatcher: CoroutineDispatcher,
+    private val defaultDispatcher: CoroutineDispatcher,
     ) : SudokuRepository {
     override suspend fun generateGrid(
         generator: SudokuGenerator,
         difficulty: Difficulty
-    ): Pair<Array<IntArray>, Array<IntArray>> = generator.generate(difficulty)
+    ): Pair<Array<IntArray>, Array<IntArray>> = generator.generate(difficulty, defaultDispatcher)
 
     override suspend fun hasGame() =
-        withContext(Dispatchers.IO) { gameStorage.currentGame.first() != null }
+        withContext(ioDispatcher) { gameStorage.currentGame.first() != null }
 
-    override suspend fun hasGameFlow() =
-        withContext(Dispatchers.IO) { gameStorage.currentGame.map { it != null } }
+    override fun hasGameFlow() =
+        gameStorage.currentGame.map { it != null }
 
     override suspend fun saveGame(game: SudokuGameState) =
-        withContext(Dispatchers.IO) { gameStorage.saveThemeSettings(game) }
+        withContext(ioDispatcher) { gameStorage.saveThemeSettings(game) }
 
-    override suspend fun loadGame(): SudokuGameState? = withContext(Dispatchers.IO){
+    override suspend fun loadGame(): SudokuGameState? = withContext(ioDispatcher){
         gameStorage.currentGame.first()
     }
 
-    override suspend fun deleteGame() = withContext(Dispatchers.IO) {
+    override suspend fun deleteGame() = withContext(ioDispatcher) {
         gameStorage.clearGameState()
     }
 
-    override suspend fun storeStatistic() = withContext(Dispatchers.IO) {
+    override suspend fun storeStatistic() = withContext(ioDispatcher) {
         val state = loadGame()
         if(state != null) {
             entryDao.insertEntry(
@@ -58,9 +60,9 @@ class SudokuGameRepository(
         }
     }
 
-    override suspend fun clearStatistic() = withContext(Dispatchers.IO) {entryDao.clearStatistic() }
+    override suspend fun clearStatistic() = withContext(ioDispatcher) {entryDao.clearStatistic() }
 
-    override suspend fun readStatistic(): SudokuGameStats = withContext(Dispatchers.IO) {
+    override suspend fun readStatistic(): SudokuGameStats = withContext(ioDispatcher) {
 
         val totalGamesPlayed = entryDao.getTotalGamesPlayed().first() // Get the first value from the Flow
         val totalGamesWon = entryDao.getTotalGamesWon().first()
@@ -71,8 +73,11 @@ class SudokuGameRepository(
             val gamesPlayed = entryDao.getGameStatisticsByDifficulty(difficultyString).first().size // Get the count
             val solvedGames = entryDao.getSolvedGameStatisticsByDifficulty(difficultyString).first()
             val gamesWon = solvedGames.size
-            val averageTime = entryDao.getAverageCompletionTimeMillisByDifficulty(difficultyString).first() ?: 0L // Handle null average
-            val fastestTime = entryDao.getFastestCompletionTimeMillisByDifficulty(difficultyString).first() ?: Long.MAX_VALUE // Handle null fastest time
+            val averageTime =
+                entryDao.getAverageCompletionTimeMillisByDifficulty(difficultyString).first() ?: 0L
+            val fastestTime =
+                entryDao.getFastestCompletionTimeMillisByDifficulty(difficultyString).first()
+                    ?: Long.MAX_VALUE
 
             return DifficultyStats(
                 gamesPlayed = gamesPlayed,

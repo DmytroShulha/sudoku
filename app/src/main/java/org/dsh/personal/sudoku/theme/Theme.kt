@@ -19,7 +19,11 @@ fun PersonalTheme(
     val context = LocalContext.current
 
     val colorScheme = when {
-        dynamicColor && useDynamicColors -> if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        dynamicColor && useDynamicColors ->
+            if (darkTheme)
+                dynamicDarkColorScheme(context)
+            else
+                dynamicLightColorScheme(context)
         darkTheme -> DarkAppColorScheme
         else -> LightAppColorScheme
     }

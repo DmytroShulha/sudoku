@@ -1,13 +1,22 @@
 package org.dsh.personal.sudoku.domain.useCase
 
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import org.dsh.personal.sudoku.domain.entity.SudokuCellNote
 import org.dsh.personal.sudoku.domain.entity.SudokuCellState
+import org.dsh.personal.sudoku.domain.isSameCol
+import org.dsh.personal.sudoku.domain.isSameBlock
+import org.dsh.personal.sudoku.domain.isSameRow
+import org.dsh.personal.sudoku.domain.ROW_SIZE
+import org.dsh.personal.sudoku.domain.BLOCK_SIZE
+import org.dsh.personal.sudoku.domain.MarkDuplicatesInBlockParam
+import org.dsh.personal.sudoku.domain.markDuplicateErrorsInSubgrid
+import org.dsh.personal.sudoku.domain.markDuplicatesInColumn
+import org.dsh.personal.sudoku.domain.markDuplicatesInRow
 
-class ValidateBoardUseCase() {
+class ValidateBoardUseCase (private val defaultDispatcher: CoroutineDispatcher) {
 
-    fun Set<SudokuCellNote>.flipVisibility(cellNumber: Int, changeTo: Boolean) =
+    private fun Set<SudokuCellNote>.flipVisibility(cellNumber: Int, changeTo: Boolean) =
         map { if (it.value == cellNumber) it.copy(isVisible = changeTo) else it }
 
     suspend operator fun invoke(
@@ -15,7 +24,7 @@ class ValidateBoardUseCase() {
         cellNumber: Int,
         cellRow: Int,
         cellCol: Int
-    ) = withContext(Dispatchers.Default) {
+    ) = withContext(defaultDispatcher) {
         for (r in grid.indices) {
             for (c in grid[r].indices) {
                 grid[r][c].apply {
@@ -49,91 +58,67 @@ class ValidateBoardUseCase() {
         }
 
         // Validate Rows
-        for (rowIndex in grid.indices) {
-            val row = grid[rowIndex]
-            val seen = mutableSetOf<Int>()
-            for (colIndex in row.indices) {
-                val cell = row[colIndex]
-                if (cell.value != 0) { // Only check non-empty cells
-                    if (seen.contains(cell.value)) {
-                        // Found a duplicate in this row
-                        // Mark the current cell as error
-                        cell.isError = true
-                        // Also find the previous occurrence(s) of this number in the row and mark them
-                        for (prevColIndex in 0 until colIndex) {
-                            if (row[prevColIndex].value == cell.value) {
-                                row[prevColIndex].isError = true
-                            }
-                        }
-                    }
-                    seen.add(cell.value)
-                }
-            }
-        }
+        validateRows(grid)
 
         // Validate Columns
-        for (colIndex in grid[0].indices) {
-            val seen = mutableSetOf<Int>()
-            for (rowIndex in grid.indices) {
-                val cell = grid[rowIndex][colIndex]
-                if (cell.value != 0) { // Only check non-empty cells
-                    if (seen.contains(cell.value)) {
-                        // Found a duplicate in this column
-                        // Mark the current cell as error
-                        cell.isError = true
-                        // Also find the previous occurrence(s) of this number in the column and mark them
-                        for (prevRowIndex in 0 until rowIndex) {
-                            if (grid[prevRowIndex][colIndex].value == cell.value) {
-                                grid[prevRowIndex][colIndex].isError = true
-                            }
-                        }
-                    }
-                    seen.add(cell.value)
-                }
-            }
-        }
+        validateColumns(grid)
 
         // Validate 3x3 Sub grids
-        for (startRow in 0 until 9 step 3) {
-            for (startCol in 0 until 9 step 3) {
+        validate3x3SubGrids(grid)
+    }
+
+    private fun validate3x3SubGrids(grid: List<List<SudokuCellState>>) {
+        for (startRow in 0 until ROW_SIZE step BLOCK_SIZE) {
+            for (startCol in 0 until ROW_SIZE step BLOCK_SIZE) {
                 val seen = mutableSetOf<Int>()
                 // Iterate through the 3x3 subgrid
-                for (rowOffset in 0 until 3) {
-                    for (colOffset in 0 until 3) {
+                for (rowOffset in 0 until BLOCK_SIZE) {
+                    for (colOffset in 0 until BLOCK_SIZE) {
                         val rowIndex = startRow + rowOffset
                         val colIndex = startCol + colOffset
                         val cell = grid[rowIndex][colIndex]
 
-                        if (cell.value != 0) { // Only check non-empty cells
-                            if (seen.contains(cell.value)) {
-                                // Found a duplicate in this subgrid
-                                // Mark the current cell as error
-                                cell.isError = true
-                                // Also find the previous occurrence(s) in this subgrid and mark them
-                                for (prevRowOffset in 0 until 3) {
-                                    for (prevColOffset in 0 until 3) {
-                                        val prevRowIndex = startRow + prevRowOffset
-                                        val prevColIndex = startCol + prevColOffset
-                                        if ((prevRowIndex != rowIndex || prevColIndex != colIndex) &&
-                                            grid[prevRowIndex][prevColIndex].value == cell.value
-                                        ) {
-                                            grid[prevRowIndex][prevColIndex].isError = true
-                                        }
-                                    }
-                                }
-                            }
-                            seen.add(cell.value)
-                        }
+                        markDuplicateErrorsInSubgrid(
+                            seen = seen,
+                            param = MarkDuplicatesInBlockParam(
+                                startRow = startRow,
+                                startCol = startCol,
+                                rowIndex = rowIndex,
+                                colIndex = colIndex,
+                                grid = grid,
+                                cell = cell
+                            )
+                        )
                     }
                 }
             }
         }
     }
 
-    fun isSameRow(row1: Int, row2: Int): Boolean = row1 == row2
-    fun isSameCol(col1: Int, col2: Int): Boolean = col1 == col2
-    fun isSameBlock(row1: Int, col1: Int, row2: Int, col2: Int): Boolean {
-        val blockSize = 3 // Assuming a standard 9x9 Sudoku with 3x3 blocks
-        return (row1 / blockSize == row2 / blockSize) && (col1 / blockSize == col2 / blockSize)
+    private fun validateColumns(grid: List<List<SudokuCellState>>) {
+        for (colIndex in grid[0].indices) {
+            val seen = mutableSetOf<Int>()
+            for (rowIndex in grid.indices) {
+                val cell = grid[rowIndex][colIndex]
+                if (cell.value != 0) { // Only check non-empty cells
+                    markDuplicatesInColumn(seen, cell, rowIndex, grid, colIndex)
+                    seen.add(cell.value)
+                }
+            }
+        }
+    }
+
+    private fun validateRows(grid: List<List<SudokuCellState>>) {
+        for (rowIndex in grid.indices) {
+            val row = grid[rowIndex]
+            val seen = mutableSetOf<Int>()
+            for (colIndex in row.indices) {
+                val cell = row[colIndex]
+                if (cell.value != 0) { // Only check non-empty cells
+                    markDuplicatesInRow(seen, cell, colIndex, row)
+                    seen.add(cell.value)
+                }
+            }
+        }
     }
 }

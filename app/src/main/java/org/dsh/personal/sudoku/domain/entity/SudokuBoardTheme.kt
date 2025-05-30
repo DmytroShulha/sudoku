@@ -9,5 +9,4 @@ data class SudokuBoardTheme(
 data class SudokuEffects(
     val useHaptic: Boolean = true,
     val useSounds: Boolean = true,
-    val soundVolume: Float = 6f,
 )

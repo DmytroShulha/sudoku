@@ -55,7 +55,7 @@ class MainActivity : ComponentActivity(), KoinComponent {
 fun MainAppNavigation(windowSizeClass: WindowSizeClass) {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = AppRoutes.SUDOKU_FEATURE) { // Define your app's home route
+    NavHost(navController = navController, startDestination = AppRoutes.SUDOKU_FEATURE) {
         // Define other app-level destinations here
         composable("main_app_home") {
             MainMenuScreen(onSudokuClick = { navController.navigate(AppRoutes.SUDOKU_FEATURE) })

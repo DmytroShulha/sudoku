@@ -4,6 +4,7 @@
     <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
+        android:usesCleartextTraffic="false"
         android:name=".PersonalApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"

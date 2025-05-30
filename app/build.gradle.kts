@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.kotlin.serialize)
     alias(libs.plugins.androidx.room)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.detekt)
 }
 
 android {
@@ -35,7 +36,7 @@ android {
                 this.keyPassword = keyPasswordValue
             } else {
                 val localProps = Properties()
-                val localPropsFile = rootProject.file("local.properties") // Assumes local.properties is in the root project directory
+                val localPropsFile = rootProject.file("local.properties")
 
                 if (localPropsFile.exists() && localPropsFile.isFile) {
                     FileInputStream(localPropsFile).use { fis ->
@@ -104,6 +105,24 @@ room {
     schemaDirectory("$projectDir/schemas")
 }
 
+detekt {
+    config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
+    baseline = file("$rootDir/config/detekt/detekt-baseline.xml")
+    ignoreFailures = false
+
+}
+
+tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+    setSource(files(project.projectDir)) // Or more specific source sets
+    classpath.setFrom(files(project.buildDir.toString() + "/tmp/kotlin-classes/debug"))
+    reports {
+        html.required.set(true)
+        xml.required.set(true)
+        txt.required.set(false)
+        sarif.required.set(true)
+    }
+}
+
 dependencies {
     implementation(libs.bundles.koinForAndroid)
     implementation(libs.androidx.compose.navigation)
@@ -132,4 +151,6 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    detektPlugins(libs.detekt.formatting)
 }

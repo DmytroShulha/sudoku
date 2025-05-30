@@ -25,8 +25,12 @@ import androidx.compose.ui.unit.dp
 import org.dsh.personal.sudoku.R
 import org.dsh.personal.sudoku.domain.entity.SudokuGameState
 import org.dsh.personal.sudoku.presentation.SudokuViewModel
+import org.dsh.personal.sudoku.presentation.view.Dimens
 import org.dsh.personal.sudoku.presentation.view.SudokuBoardView
 import org.dsh.personal.sudoku.presentation.view.SudokuNumberInputRow
+
+private const val WEIGHT04 = .4f
+private const val WEIGHT06 = .6f
 
 @Composable
 fun SudokuGame(
@@ -49,9 +53,9 @@ fun SudokuGame(
             // Sudoku Board (takes more space)
             Box(
                 modifier = Modifier
-                    .weight(0.6f) // Take available space
+                    .weight(WEIGHT06) // Take available space
                     .aspectRatio(1f, true) // Keep square aspect ratio for the board
-                    .padding(16.dp) // Add padding
+                    .padding(Dimens.Large) // Add padding
             ) {
                 if (sudokuSettings.isPaused) {
                     Box(
@@ -61,7 +65,11 @@ fun SudokuGame(
                             onClick = { resumeGame() },
                             modifier = Modifier.align(Alignment.Center)
                         ) {
-                            Icon(Icons.Outlined.PlayArrow, contentDescription = stringResource(R.string.play), modifier = Modifier.size(72.dp))
+                            Icon(
+                                Icons.Outlined.PlayArrow,
+                                contentDescription = stringResource(R.string.play),
+                                modifier = Modifier.size(72.dp)
+                            )
                         }
                     }
                 } else {
@@ -78,9 +86,9 @@ fun SudokuGame(
             // Number Input and Controls (aligned to the side)
             Column(
                 modifier = Modifier
-                    .weight(0.4f)
+                    .weight(WEIGHT04)
                     .width(IntrinsicSize.Min) // Take minimum width
-                    .padding(horizontal = 16.dp, vertical = 16.dp) // Add padding
+                    .padding(Dimens.Large)
                     .align(Alignment.CenterVertically) // Vertically center the column
             ) {
                 if (!sudokuSettings.isPaused) {
@@ -91,7 +99,7 @@ fun SudokuGame(
                         notesClick = notesClick,
                         currentInputMode = gameState.inputMode,
                     )
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(Dimens.Large))
                     // Add other controls or information here for wider screens
                 }
             }
@@ -99,7 +107,6 @@ fun SudokuGame(
     } else {
         // Original layout for smaller screens (phones)
         Column(modifier = modifier) {
-            Spacer(Modifier.height(132.dp)) // Consider adjusting this spacer for phones
 
             if (sudokuSettings.isPaused) {
                 Box(
@@ -109,18 +116,22 @@ fun SudokuGame(
                         onClick = { resumeGame() },
                         modifier = Modifier.align(Alignment.Center)
                     ) {
-                        Icon(Icons.Outlined.PlayArrow, contentDescription = stringResource(R.string.play), modifier = Modifier.size(72.dp))
+                        Icon(
+                            Icons.Outlined.PlayArrow,
+                            contentDescription = stringResource(R.string.play),
+                            modifier = Modifier.size(72.dp)
+                        )
                     }
                 }
             } else {
                 SudokuBoardView(
-                    modifier = Modifier.padding(top = 8.dp, start = 4.dp, end = 4.dp),
+                    modifier = Modifier.padding(top = Dimens.Medium, start = Dimens.Small, end = Dimens.Small),
                     board = gameState.boardState.grid,
                     selectedCellPosition = gameState.selectedCell,
                     onCellClick = onCellClick,
                     settings = sudokuSettings,
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(Dimens.Medium))
 
                 SudokuNumberInputRow(
                     numbers = gameState.availableNumbers,

@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ForEachOnRange:SudokuBoard.kt$0 until boardSize</ID>
+    <ID>LongMethod:GameStatistic.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun SudokuAnalyticsScreen(onNavigateBack: () -&gt; Unit, stats: SudokuGameStats, onClearStat: ()-&gt; Unit)</ID>
+    <ID>LongMethod:SudokuFeatureEntry.kt$SudokuFeatureEntry$@OptIn(ExperimentalMaterial3Api::class) @Composable fun SudokuGameScreen( navController: NavController, difficultyString: String?, windowSizeClass: WindowSizeClass, )</ID>
+    <ID>LongMethod:SudokuGame.kt$@Composable fun SudokuGame( modifier: Modifier = Modifier, gameState: SudokuGameState, onCellClick: (row: Int, col: Int) -&gt; Unit, onNumberClick: (Int) -&gt; Unit, undoClick: () -&gt; Unit, notesClick: () -&gt; Unit, sudokuSettings: SudokuViewModel.SudokuSettings, resumeGame: () -&gt; Unit, windowSizeClass: WindowSizeClass, )</ID>
+    <ID>LongMethod:SudokuMainMenu.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun SudokuMainMenu( onStartGame: (difficulty: Difficulty) -&gt; Unit, onAboutClick: () -&gt; Unit, onSettingsClick: () -&gt; Unit, onStatisticClick: () -&gt; Unit, hasContinueGame: Boolean, onResumeGame: () -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>LongMethod:SudokuNumberInputRow.kt$@Composable fun SudokuNumberInputRow( modifier: Modifier = Modifier, numbers: List&lt;SudokuNumberButtonState&gt;, onNumberClick: (Int) -&gt; Unit, undoClick: () -&gt; Unit, notesClick: () -&gt; Unit, currentInputMode: InputMode, )</ID>
+    <ID>LongMethod:ThemeSettingsDialog.kt$@Composable fun ThemeSettingsDialog( currentTheme: SudokuBoardTheme, onThemeChange: (SudokuBoardTheme) -&gt; Unit, onDismissRequest: () -&gt; Unit // Lambda to dismiss the dialog )</ID>
+    <ID>LongParameterList:SudokuAboutScreen.kt$( icon: ImageVector, label: String, text: String, modifier: Modifier = Modifier, isMultiline: Boolean = false, textAlign: TextAlign = TextAlign.Start, )</ID>
+    <ID>LongParameterList:SudokuAboutScreen.kt$( onNavigateBack: () -&gt; Unit, onHowToPlayClick: () -&gt; Unit, appName: String, appVersion: String, playStoreUrl: String, githubRepo: String, )</ID>
+    <ID>LongParameterList:SudokuGame.kt$( modifier: Modifier = Modifier, gameState: SudokuGameState, onCellClick: (row: Int, col: Int) -&gt; Unit, onNumberClick: (Int) -&gt; Unit, undoClick: () -&gt; Unit, notesClick: () -&gt; Unit, sudokuSettings: SudokuViewModel.SudokuSettings, resumeGame: () -&gt; Unit, windowSizeClass: WindowSizeClass, )</ID>
+    <ID>LongParameterList:SudokuMainMenu.kt$( onStartGame: (difficulty: Difficulty) -&gt; Unit, onAboutClick: () -&gt; Unit, onSettingsClick: () -&gt; Unit, onStatisticClick: () -&gt; Unit, hasContinueGame: Boolean, onResumeGame: () -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>LongParameterList:SudokuNumberInputRow.kt$( modifier: Modifier = Modifier, numbers: List&lt;SudokuNumberButtonState&gt;, onNumberClick: (Int) -&gt; Unit, undoClick: () -&gt; Unit, notesClick: () -&gt; Unit, currentInputMode: InputMode, )</ID>
+    <ID>LongParameterList:SudokuViewModel.kt$SudokuViewModel$( currentState: SudokuGameState, row: Int, col: Int, number: Int, cellToModify: SudokuCellState, newGrid: SnapshotStateList&lt;SnapshotStateList&lt;SudokuCellState&gt;&gt; )</ID>
+    <ID>NewLineAtEndOfFile:ExampleUnitTest.kt$org.dsh.personal.ExampleUnitTest.kt</ID>
+    <ID>NewLineAtEndOfFile:GameToolBar.kt$org.dsh.personal.sudoku.presentation.main.GameToolBar.kt</ID>
+    <ID>TooGenericExceptionCaught:SudokuAboutScreen.kt$e: Exception</ID>
+    <ID>TooManyFunctions:SudokuViewModel.kt$SudokuViewModel : ViewModel</ID>
+    <ID>WildcardImport:ExampleUnitTest.kt$import org.junit.Assert.*</ID>
+  </CurrentIssues>
+</SmellBaseline>

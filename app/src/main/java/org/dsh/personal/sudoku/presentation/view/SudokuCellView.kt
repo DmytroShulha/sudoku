@@ -45,29 +45,7 @@ fun SudokuCellView(
         else -> Color.Transparent
     }
 
-    val context = LocalContext.current
-    val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-    val haptic = LocalHapticFeedback.current
-    when {
-        cell.isError -> {
-            if(effects.useSounds) {
-                audioManager.playSoundEffect(AudioManager.FX_KEYPRESS_INVALID, effects.soundVolume)
-            }
-            if (effects.useHaptic) {
-                haptic.performHapticFeedback(HapticFeedbackType.Reject)
-                haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
-                haptic.performHapticFeedback(HapticFeedbackType.Reject)
-            }
-        }
-        isSelected -> {
-            if(effects.useSounds) {
-                audioManager.playSoundEffect(AudioManager.FX_KEY_CLICK)
-            }
-            if (effects.useHaptic) {
-                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-            }
-        }
-    }
+    PerformEffects(cell, effects, isSelected)
 
     var boxSize by remember { mutableStateOf(IntSize.Zero) }
 
@@ -103,6 +81,38 @@ fun SudokuCellView(
     }
 }
 
+@Composable
+private fun PerformEffects(
+    cell: SudokuCellState,
+    effects: SudokuEffects,
+    isSelected: Boolean
+) {
+    val context = LocalContext.current
+    val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+    val haptic = LocalHapticFeedback.current
+    when {
+        cell.isError -> {
+            if (effects.useSounds) {
+                audioManager.playSoundEffect(AudioManager.FX_KEYPRESS_INVALID)
+            }
+            if (effects.useHaptic) {
+                haptic.performHapticFeedback(HapticFeedbackType.Reject)
+                haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                haptic.performHapticFeedback(HapticFeedbackType.Reject)
+            }
+        }
+
+        isSelected -> {
+            if (effects.useSounds) {
+                audioManager.playSoundEffect(AudioManager.FX_KEY_CLICK)
+            }
+            if (effects.useHaptic) {
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            }
+        }
+    }
+}
+
 // Preview for SudokuCellView
 @Preview(showBackground = true)
 @Composable
@@ -130,7 +140,12 @@ fun SudokuCellViewPreview_UserValue() {
 @Composable
 fun SudokuCellViewPreview_Error() {
     SudokuCellView(
-        cell = SudokuCellState(id = SyncStateContract.Constants.DATA, value = 7, isClue = false, isError = true),
+        cell = SudokuCellState(
+            id = SyncStateContract.Constants.DATA,
+            value = 7,
+            isClue = false,
+            isError = true
+        ),
         isSelected = false,
         onClick = {},
         effects = SudokuEffects()
@@ -141,7 +156,12 @@ fun SudokuCellViewPreview_Error() {
 @Composable
 fun SudokuCellViewPreview_Notes() {
     SudokuCellView(
-        cell = SudokuCellState(id = SyncStateContract.Constants.DATA, value = 0, isClue = false, notes = setOf(SudokuCellNote(1), SudokuCellNote(4), SudokuCellNote(6))),
+        cell = SudokuCellState(
+            id = SyncStateContract.Constants.DATA,
+            value = 0,
+            isClue = false,
+            notes = setOf(SudokuCellNote(1), SudokuCellNote(4), SudokuCellNote(6))
+        ),
         isSelected = false,
         onClick = {},
         effects = SudokuEffects()
@@ -158,9 +178,12 @@ fun SudokuCellViewPreview_EmptySelected() {
         effects = SudokuEffects()
     )
 }
+
 // Preview for SudokuCellView
-@Preview(showBackground = true,
-    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES or android.content.res.Configuration.UI_MODE_TYPE_NORMAL
+@Preview(
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
+            or android.content.res.Configuration.UI_MODE_TYPE_NORMAL
 )
 @Composable
 fun SudokuCellViewPreview_ClueDark() {
@@ -172,8 +195,11 @@ fun SudokuCellViewPreview_ClueDark() {
     )
 }
 
-@Preview(showBackground = true,
-    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES or android.content.res.Configuration.UI_MODE_TYPE_NORMAL)
+@Preview(
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
+            or android.content.res.Configuration.UI_MODE_TYPE_NORMAL
+)
 @Composable
 fun SudokuCellViewPreview_UserValueDark() {
     SudokuCellView(
@@ -184,33 +210,55 @@ fun SudokuCellViewPreview_UserValueDark() {
     )
 }
 
-@Preview(showBackground = true,
-    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES or android.content.res.Configuration.UI_MODE_TYPE_NORMAL)
+@Preview(
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
+            or android.content.res.Configuration.UI_MODE_TYPE_NORMAL
+)
 @Composable
+@Suppress("MagicNumber")
 fun SudokuCellViewPreview_ErrorDark() {
     SudokuCellView(
-        cell = SudokuCellState(id = SyncStateContract.Constants.DATA, value = 7, isClue = false, isError = true),
+        cell = SudokuCellState(
+            id = SyncStateContract.Constants.DATA,
+            value = 7,
+            isClue = false,
+            isError = true
+        ),
         isSelected = false,
         onClick = {},
         effects = SudokuEffects()
     )
 }
 
-@Preview(showBackground = true,
-    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES or android.content.res.Configuration.UI_MODE_TYPE_NORMAL)
+@Preview(
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
+            or android.content.res.Configuration.UI_MODE_TYPE_NORMAL
+)
 @Composable
+@Suppress("MagicNumber")
 fun SudokuCellViewPreview_NotesDark() {
     SudokuCellView(
-        cell = SudokuCellState(id = SyncStateContract.Constants.DATA, value = 0, isClue = false, notes = setOf(SudokuCellNote(1), SudokuCellNote(4), SudokuCellNote(6))),
+        cell = SudokuCellState(
+            id = SyncStateContract.Constants.DATA,
+            value = 0,
+            isClue = false,
+            notes = setOf(SudokuCellNote(1), SudokuCellNote(4), SudokuCellNote(6))
+        ),
         isSelected = false,
         onClick = {},
         effects = SudokuEffects()
     )
 }
 
-@Preview(showBackground = true,
-    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES or android.content.res.Configuration.UI_MODE_TYPE_NORMAL)
+@Preview(
+    showBackground = true,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
+            or android.content.res.Configuration.UI_MODE_TYPE_NORMAL
+)
 @Composable
+@Suppress("MagicNumber")
 fun SudokuCellViewPreview_EmptySelectedDark() {
     SudokuCellView(
         cell = SudokuCellState(id = SyncStateContract.Constants.DATA, value = 0, isClue = false),

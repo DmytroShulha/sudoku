@@ -4,32 +4,44 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 
+
+@Suppress("MagicNumber")
 val PrimaryBlue = Color(0xFF3D5AFE)
+@Suppress("MagicNumber")
 val PrimaryBlueDark = Color(0xFF0031CA)
+@Suppress("MagicNumber")
 val PrimaryBlueLight = Color(0xFF7A89FF)
 
 // Accent Colors (Remain as defined for custom static theme)
+@Suppress("MagicNumber")
 val AccentOrange = Color(0xFFFFAB40)
+@Suppress("MagicNumber")
 val AccentOrangeDark = Color(0xFFC77C02)
+@Suppress("MagicNumber")
 val AccentOrangeLight = Color(0xFFFFDD72)
 
 // Base Error Colors (Remain as defined for custom static theme)
+@Suppress("MagicNumber")
 val AppErrorBase = Color(0xFFB00020) // For light theme error
 val AppOnErrorBase = Color.White      // For light theme onError
 
 // Light Theme Specific Base Colors
+@Suppress("MagicNumber")
 val LightBackgroundBase = Color(0xFFF5F5F5)
 val LightOnBackgroundBase = Color.Black
 val LightSurfaceBase = Color.White
 val LightOnSurfaceBase = Color.Black
 
 // Dark Theme Specific Base Colors
+@Suppress("MagicNumber")
 val DarkBackgroundBase = Color(0xFF121212)
 val DarkOnBackgroundBase = Color.White // Often a slightly off-white like #E0E0E0 is better
+@Suppress("MagicNumber")
 val DarkSurfaceBase = Color(0xFF1E1E1E)
 val DarkOnSurfaceBase = Color.White    // Often a slightly off-white
 
 // Static Light Color Scheme (Fallback)
+@Suppress("MagicNumber")
 val LightAppColorScheme = lightColorScheme(
     primary = PrimaryBlue,
     onPrimary = Color.White,
@@ -63,6 +75,7 @@ val LightAppColorScheme = lightColorScheme(
 )
 
 // Static Dark Color Scheme (Fallback)
+@Suppress("MagicNumber")
 val DarkAppColorScheme = darkColorScheme(
     primary = PrimaryBlueLight, // Lighter primary for dark theme
     onPrimary = PrimaryBlueDark, // Darker text on light primary
@@ -94,22 +107,3 @@ val DarkAppColorScheme = darkColorScheme(
     outlineVariant = Color(0xFF49454F), // Material 3 default dark outlineVariant
     scrim = Color.Black
 )
-
-// Sudoku Specific Colors (These are custom and used directly, not part of MaterialTheme colors)
-// Light Theme Sudoku Colors
-val SudokuGridLineColorLight = Color(0xFFBDBDBD)
-val SudokuCellTextColorLight = Color(0xFF212121)
-val SudokuSelectedCellColorLight = PrimaryBlueLight
-val SudokuHighlightedCellColorLight = Color(0xFFFFF9C4)
-val SudokuConflictingCellColorLight = AppErrorBase // Use the base error color
-val SudokuFixedNumberColorLight = Color.Black
-val SudokuUserNumberColorLight = PrimaryBlue
-
-// Dark Theme Sudoku Colors
-val SudokuGridLineColorDark = Color(0xFF424242)
-val SudokuCellTextColorDark = Color(0xFFE0E0E0)
-val SudokuSelectedCellColorDark = PrimaryBlueDark
-val SudokuHighlightedCellColorDark = Color(0xFF4A463A) // Darker yellow
-val SudokuConflictingCellColorDark = AccentOrange // Using accent for less harsh error in dark
-val SudokuFixedNumberColorDark = Color.White
-val SudokuUserNumberColorDark = PrimaryBlueLight

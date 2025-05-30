@@ -40,6 +40,7 @@ import org.dsh.personal.sudoku.domain.entity.SudokuBoardState
 import org.dsh.personal.sudoku.domain.entity.SudokuGameState
 import org.dsh.personal.sudoku.domain.entity.SudokuGameStatistic
 import org.dsh.personal.sudoku.presentation.capitalizeFirstLetter
+import org.dsh.personal.sudoku.presentation.view.Dimens
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -54,7 +55,7 @@ fun SuccessScreen(
         Column(
             modifier = modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(Dimens.Large)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
@@ -85,60 +86,16 @@ fun SuccessScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             // Game Statistics Section
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    StatisticRow(stringResource(R.string.time_taken), gameStats.duration.toString())
-                    StatisticRow(stringResource(R.string.difficulty_c), gameStats.difficulty.toString().capitalizeFirstLetter())
-                    StatisticRow(stringResource(R.string.steps_taken), gameStats.history.size.toString())
-                    StatisticRow(stringResource(R.string.notes_made), gameStats.boardState.grid.flatten().sumOf { it.notes.size }.toString())
-                }
-            }
+            SectionStatistic(gameStats)
 
             Spacer(modifier = Modifier.height(40.dp))
 
             // Action Buttons
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                // New Game Button
-                Button(
-                    onClick = onNewGameClicked,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 8.dp),
-                    contentPadding = PaddingValues(vertical = 12.dp)
-                ) {
-                    Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.new_game_context_desc), modifier = Modifier.size(ButtonDefaults.IconSize))
-                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                    Text(stringResource(R.string.new_game), fontSize = 16.sp)
-                }
-
-                // Main Menu Button
-                OutlinedButton(
-                    onClick = onMainMenuClicked,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 8.dp),
-                    contentPadding = PaddingValues(vertical = 12.dp)
-                ) {
-                    Icon(Icons.Filled.Home, contentDescription = stringResource(R.string.main_menu), modifier = Modifier.size(ButtonDefaults.IconSize))
-                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                    Text(stringResource(R.string.main_menu), fontSize = 16.sp)
-                }
-            }
+            GameContinueButtons(onNewGameClicked, onMainMenuClicked)
 
             // Optional: Share Button
             onShareClicked?.let {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(Dimens.Large))
                 Button(
                     onClick = it,
                     modifier = Modifier.fillMaxWidth(),
@@ -149,6 +106,77 @@ fun SuccessScreen(
             }
         }
 
+}
+
+@Composable
+private fun GameContinueButtons(onNewGameClicked: () -> Unit, onMainMenuClicked: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        // New Game Button
+        Button(
+            onClick = onNewGameClicked,
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 8.dp),
+            contentPadding = PaddingValues(vertical = Dimens.BigMedium)
+        ) {
+            Icon(
+                Icons.Filled.Refresh,
+                contentDescription = stringResource(R.string.new_game_context_desc),
+                modifier = Modifier.size(ButtonDefaults.IconSize)
+            )
+            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+            Text(stringResource(R.string.new_game), fontSize = 16.sp)
+        }
+
+        // Main Menu Button
+        OutlinedButton(
+            onClick = onMainMenuClicked,
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = Dimens.Medium),
+            contentPadding = PaddingValues(vertical = Dimens.BigMedium)
+        ) {
+            Icon(
+                Icons.Filled.Home,
+                contentDescription = stringResource(R.string.main_menu),
+                modifier = Modifier.size(ButtonDefaults.IconSize)
+            )
+            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+            Text(stringResource(R.string.main_menu), fontSize = 16.sp)
+        }
+    }
+}
+
+@Composable
+private fun SectionStatistic(gameStats: SudokuGameState) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            StatisticRow(stringResource(R.string.time_taken), gameStats.duration.toString())
+            StatisticRow(
+                stringResource(R.string.difficulty_c),
+                gameStats.difficulty.toString().capitalizeFirstLetter()
+            )
+            StatisticRow(
+                stringResource(R.string.steps_taken),
+                gameStats.history.size.toString()
+            )
+            StatisticRow(
+                stringResource(R.string.notes_made),
+                gameStats.boardState.grid.flatten().sumOf { it.notes.size }.toString()
+            )
+        }
+    }
 }
 
 @Composable

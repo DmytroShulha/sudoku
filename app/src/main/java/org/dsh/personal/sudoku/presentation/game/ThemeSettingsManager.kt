@@ -5,7 +5,6 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -26,7 +25,6 @@ class ThemeSettingsManager(private val context: Context) {
         val IS_DYNAMIC = booleanPreferencesKey("is_dynamic_theme")
         val USE_HAPTIC = booleanPreferencesKey("use_haptic")
         val USE_SOUNDS = booleanPreferencesKey("use_sounds")
-        val SOUND_VOLUME = floatPreferencesKey("sound_volume")
     }
 
     // Flow to read the theme settings
@@ -56,7 +54,6 @@ class ThemeSettingsManager(private val context: Context) {
             SudokuEffects(
                 useHaptic = preferences[PreferencesKeys.USE_HAPTIC] != false,
                 useSounds = preferences[PreferencesKeys.USE_SOUNDS] != false,
-                soundVolume = preferences[PreferencesKeys.SOUND_VOLUME] ?: 6f
             )
         }
 
@@ -65,7 +62,6 @@ class ThemeSettingsManager(private val context: Context) {
         context.themeDataStore.edit { preferences ->
             preferences[PreferencesKeys.USE_HAPTIC] = theme.useHaptic
             preferences[PreferencesKeys.USE_SOUNDS] = theme.useSounds
-            preferences[PreferencesKeys.SOUND_VOLUME] = theme.soundVolume
         }
     }
 }

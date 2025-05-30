@@ -1,6 +1,5 @@
 package org.dsh.personal.sudoku.presentation.main
 
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -47,8 +46,12 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import org.dsh.personal.sudoku.domain.entity.Difficulty
 import org.dsh.personal.sudoku.R
+import org.dsh.personal.sudoku.presentation.view.Dimens
 
-@OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
+private const val WeightSmall = .2f
+private const val WeightMedium = .5f
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SudokuMainMenu(
     onStartGame: (difficulty: Difficulty) -> Unit,
@@ -59,6 +62,7 @@ fun SudokuMainMenu(
     onResumeGame: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+
     var showNewGame by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
@@ -68,20 +72,19 @@ fun SudokuMainMenu(
         Column(
             modifier = modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(Dimens.Large)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Spacer(Modifier.weight(.5f))
+            Spacer(Modifier.weight(WeightMedium))
             Image(painter = painterResource(id = R.drawable.ic_launcher_foreground), contentDescription = null)
             Text(
                 text = stringResource(R.string.app_name),
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = 48.dp)
             )
-            Spacer(Modifier.weight(.2f))
+            Spacer(Modifier.weight(WeightSmall))
 
             if (hasContinueGame) {
                 MenuButton(
@@ -90,7 +93,7 @@ fun SudokuMainMenu(
                     onClick = onResumeGame,
                     contentDescription = stringResource(R.string.resume_game_context_desc)
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(Dimens.Large))
             }
 
             MenuButton(
@@ -107,7 +110,7 @@ fun SudokuMainMenu(
                 onClick = onSettingsClick,
                 contentDescription = stringResource(R.string.settings_content_desc)
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Dimens.Large))
 
             MenuButton(
                 text = stringResource(R.string.statistics),
@@ -115,7 +118,7 @@ fun SudokuMainMenu(
                 onClick = onStatisticClick,
                 contentDescription = stringResource(R.string.statistics_content_desc)
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Dimens.Large))
 
             MenuButton(
                 text = stringResource(R.string.about),
@@ -123,7 +126,7 @@ fun SudokuMainMenu(
                 onClick = onAboutClick,
                 contentDescription = stringResource(R.string.about_content_desc)
             )
-            Spacer(Modifier.weight(.2f))
+            Spacer(Modifier.weight(WeightSmall))
         }
 
         if (showNewGame) {
@@ -174,7 +177,7 @@ fun MenuButton(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
         ),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+        contentPadding = PaddingValues(horizontal = Dimens.Large, vertical = Dimens.Medium)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -184,7 +187,7 @@ fun MenuButton(
             Icon(
                 imageVector = icon,
                 contentDescription = contentDescription,
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(Dimens.Icon),
             )
             Spacer(Modifier.width(16.dp))
             Text(
@@ -197,7 +200,7 @@ fun MenuButton(
             Icon(
                 imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
                 contentDescription = null,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(Dimens.Icon)
             )
         }
     }
