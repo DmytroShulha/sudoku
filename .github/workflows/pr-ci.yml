@@ -1,0 +1,44 @@
+name: Pull Request CI
+
+on:
+  pull_request:
+    branches:
+      - main
+      - 'release/**'
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build_and_test_pr:
+    name: Build & Test PR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run Android Lint (Debug)
+        run: ./gradlew lintDebug
+
+      - name: Run unit tests (Debug)
+        run: ./gradlew testDebugUnitTest
+
+      - name: Build Debug AAB
+        # No signing needed for PR debug builds
+        run: ./gradlew bundleDebug
+
+      - name: Upload Debug AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-pr-${{ github.event.pull_request.number }}-${{ github.sha }}
+          path: app/build/outputs/bundle/debug/app-debug.aab
+          retention-days: 3

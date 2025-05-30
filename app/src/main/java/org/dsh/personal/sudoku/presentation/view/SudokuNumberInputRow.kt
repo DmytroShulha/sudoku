@@ -50,6 +50,9 @@ import org.dsh.personal.sudoku.domain.entity.SudokuNumberButtonState
 import org.dsh.personal.sudoku.theme.PersonalTheme
 import kotlin.collections.List
 
+private const val ANIMATION_DURATION_200 = 200
+private const val ANIMATION_DURATION_300 = 300
+
 @Composable
 fun SudokuNumberInputRow(
     modifier: Modifier = Modifier,
@@ -106,7 +109,10 @@ fun SudokuNumberInputRow(
 
             Button(onClick = { onNumberClick(0) }) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Outlined.Clear, contentDescription = stringResource(R.string.clear_content_desc))
+                    Icon(
+                        imageVector = Icons.Outlined.Clear,
+                        contentDescription = stringResource(R.string.clear_content_desc)
+                    )
                     Spacer(Modifier.width(4.dp))
                     Text(stringResource(R.string.clear))
                 }
@@ -141,7 +147,7 @@ fun NumberInputButton(
     var countChanged by remember { mutableStateOf(false) }
     LaunchedEffect(numberState.availableCount) {
         countChanged = true
-        delay(300)
+        delay(ANIMATION_DURATION_300.toLong())
         countChanged = false
     }
 
@@ -151,7 +157,7 @@ fun NumberInputButton(
         } else {
             MaterialTheme.colorScheme.onSecondary
         },
-        animationSpec = tween(durationMillis = 300)
+        animationSpec = tween(durationMillis = ANIMATION_DURATION_300)
     )
     val boxColor by animateColorAsState(
         targetValue = if (numberState.isPossible) {
@@ -159,7 +165,7 @@ fun NumberInputButton(
         } else {
             MaterialTheme.colorScheme.secondary
         },
-        animationSpec = tween(durationMillis = 300)
+        animationSpec = tween(durationMillis = ANIMATION_DURATION_300)
     )
 
 
@@ -168,9 +174,9 @@ fun NumberInputButton(
     val countColor by animateColorAsState(
         targetValue = if (countChanged) colorOutline else colorOutlineVariant,
         animationSpec = keyframes {
-            durationMillis = 200
+            durationMillis = ANIMATION_DURATION_200
             colorOutline at 0
-            colorOutlineVariant at 200
+            colorOutlineVariant at ANIMATION_DURATION_200
         }
     )
 
@@ -208,6 +214,7 @@ fun NumberInputButton(
     uiMode = Configuration.UI_MODE_NIGHT_YES
 )
 @Composable
+@Suppress("MagicNumber")
 fun PreviewNumberInputRow() {
     PersonalTheme {
         val sampleNumbers = listOf(

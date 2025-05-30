@@ -8,7 +8,7 @@ class CurrentGameHandler (val repository: SudokuRepository) {
     suspend fun hasGame(): Boolean {
         return repository.hasGame()
     }
-    suspend fun hasGameFlow(): Flow<Boolean> {
+    fun hasGameFlow(): Flow<Boolean> {
         return repository.hasGameFlow()
     }
     suspend fun saveGame(game: SudokuGameState) {

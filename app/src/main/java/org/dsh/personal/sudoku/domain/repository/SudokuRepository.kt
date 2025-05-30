@@ -11,7 +11,7 @@ interface SudokuRepository {
 
     //Preferences
     suspend fun hasGame(): Boolean
-    suspend fun hasGameFlow(): Flow<Boolean>
+    fun hasGameFlow(): Flow<Boolean>
     suspend fun saveGame(game: SudokuGameState)
     suspend fun loadGame(): SudokuGameState?
     suspend fun deleteGame()

@@ -1,14 +1,22 @@
 package org.dsh.personal.sudoku.data
 
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import org.dsh.personal.sudoku.domain.repository.SudokuGenerator
 import org.dsh.personal.sudoku.domain.entity.Difficulty
 import kotlin.random.Random
 
 class SudokuGeneratorEasy : SudokuGenerator {
 
-    private val gridSize = 9
-    private val subgridSize = 3
+    companion object {
+        private const val GRID_SIZE = 9
+        private const val SUB_GRID_SIZE = 3
+
+        private const val DIFFICULTY_EASY = 40   // Leaves ~41 clues
+        private const val DIFFICULTY_MEDIUM = 48  // Leaves ~33 clues
+        private const val DIFFICULTY_HARD = 54   // Leaves ~27 clues
+        private const val DIFFICULTY_EXPERT = 58  // Leaves ~23 clues (can be very hard to generate uniquely)
+    }
+
     private var currentSolutionCount = 0 // Used by the solution counting mechanism
 
     /**
@@ -18,7 +26,10 @@ class SudokuGeneratorEasy : SudokuGenerator {
      * @param difficulty The desired difficulty level of the puzzle.
      * @return A 9x9 Array<IntArray> representing the Sudoku puzzle.
      */
-    override suspend fun generate(difficulty: Difficulty): Pair<Array<IntArray>, Array<IntArray>> = with(Dispatchers.Default) {
+    override suspend fun generate(
+        difficulty: Difficulty,
+        defaultDispatcher: CoroutineDispatcher
+    ): Pair<Array<IntArray>, Array<IntArray>> = with(defaultDispatcher) {
         val solution = generateFullSolution()
         solution to createPuzzleFromSolution(solution, difficulty)
     }
@@ -30,10 +41,10 @@ class SudokuGeneratorEasy : SudokuGenerator {
             print("| ")
             for (j in grid[i].indices) {
                 print(if (grid[i][j] == 0) ". " else "${grid[i][j]} ")
-                if ((j + 1) % 3 == 0) print("| ")
+                if ((j + 1) % SUB_GRID_SIZE == 0) print("| ")
             }
             println()
-            if ((i + 1) % 3 == 0) {
+            if ((i + 1) % SUB_GRID_SIZE == 0) {
                 println("+-------+-------+-------+")
             }
         }
@@ -44,7 +55,7 @@ class SudokuGeneratorEasy : SudokuGenerator {
      * Generates a fully solved Sudoku grid.
      */
     private suspend fun generateFullSolution(): Array<IntArray> {
-        val grid = Array(gridSize) { IntArray(gridSize) { 0 } }
+        val grid = Array(GRID_SIZE) { IntArray(GRID_SIZE) }
         solve(grid)
         return grid
     }
@@ -56,24 +67,32 @@ class SudokuGeneratorEasy : SudokuGenerator {
      * @return True if a solution was found, false otherwise.
      */
     private suspend fun solve(grid: Array<IntArray>): Boolean {
-        for (row in 0 until gridSize) {
-            for (col in 0 until gridSize) {
+        for (row in 0 until GRID_SIZE) {
+            for (col in 0 until GRID_SIZE) {
                 if (grid[row][col] == 0) { // Find an empty cell
-                    val numbers = (1..gridSize).shuffled(Random) // Try numbers in random order
-                    for (num in numbers) {
-                        if (isValidPlacement(grid, num, row, col)) {
-                            grid[row][col] = num
-                            if (solve(grid)) {
-                                return true // Solution found
-                            }
-                            grid[row][col] = 0 // Backtrack
-                        }
-                    }
-                    return false // No valid number found for this empty cell, trigger backtrack
+                    return solveCell(grid, row, col)
                 }
             }
         }
         return true // All cells are filled, solution complete
+    }
+
+    private suspend fun SudokuGeneratorEasy.solveCell(
+        grid: Array<IntArray>,
+        row: Int,
+        col: Int
+    ): Boolean {
+        val numbers = (1..GRID_SIZE).shuffled(Random)
+        for (num in numbers) {
+            if (isValidPlacement(grid, num, row, col)) {
+                grid[row][col] = num
+                if (solve(grid)) {
+                    return true // Solution found
+                }
+                grid[row][col] = 0 // Backtrack
+            }
+        }
+        return false // No valid number found for this empty cell, trigger backtrack
     }
 
     /**
@@ -91,15 +110,15 @@ class SudokuGeneratorEasy : SudokuGenerator {
         // These are targets; the actual number removed might be less if uniqueness is compromised.
         // Values aim to leave a certain number of clues (81 - cellsToAttemptToRemove).
         val cellsToAttemptToRemove = when (difficulty) {
-            Difficulty.EASY -> 40   // Leaves ~41 clues
-            Difficulty.MEDIUM -> 48  // Leaves ~33 clues
-            Difficulty.HARD -> 54   // Leaves ~27 clues
-            Difficulty.EXPERT -> 58  // Leaves ~23 clues (can be very hard to generate uniquely)
+            Difficulty.EASY -> DIFFICULTY_EASY   // Leaves ~41 clues
+            Difficulty.MEDIUM -> DIFFICULTY_MEDIUM  // Leaves ~33 clues
+            Difficulty.HARD -> DIFFICULTY_HARD   // Leaves ~27 clues
+            Difficulty.EXPERT -> DIFFICULTY_EXPERT  // Leaves ~23 clues (can be very hard to generate uniquely)
         }
 
         val cellCoordinates = mutableListOf<Pair<Int, Int>>()
-        for (r in 0 until gridSize) {
-            for (c in 0 until gridSize) {
+        for (r in 0 until GRID_SIZE) {
+            for (c in 0 until GRID_SIZE) {
                 cellCoordinates.add(Pair(r, c))
             }
         }
@@ -153,15 +172,16 @@ class SudokuGeneratorEasy : SudokuGenerator {
      * @param grid The grid to solve/analyze.
      * @param countLimit Stop counting once this many solutions are found.
      */
+    @Suppress("ReturnCount", "NestedBlockDepth")
     private suspend fun internalSolveAndCount(grid: Array<IntArray>, countLimit: Int) {
         if (currentSolutionCount >= countLimit) {
             return // Already found enough solutions, no need to search further
         }
 
-        for (row in 0 until gridSize) {
-            for (col in 0 until gridSize) {
+        for (row in 0 until GRID_SIZE) {
+            for (col in 0 until GRID_SIZE) {
                 if (grid[row][col] == 0) { // Find an empty cell
-                    for (num in 1..gridSize) { // Try numbers 1-9
+                    for (num in 1..GRID_SIZE) { // Try numbers 1-9
                         if (isValidPlacement(grid, num, row, col)) {
                             grid[row][col] = num
                             internalSolveAndCount(grid, countLimit)
@@ -190,23 +210,24 @@ class SudokuGeneratorEasy : SudokuGenerator {
      */
     @Suppress("RedundantSuspendModifier")
     private suspend fun isValidPlacement(grid: Array<IntArray>, number: Int, row: Int, col: Int): Boolean {
+        var result = true
         // Check row
-        for (c in 0 until gridSize) {
-            if (grid[row][c] == number) return false
+        for (c in 0 until GRID_SIZE) {
+            if (grid[row][c] == number) result = false
         }
         // Check column
-        for (r in 0 until gridSize) {
-            if (grid[r][col] == number) return false
+        for (r in 0 until GRID_SIZE) {
+            if (grid[r][col] == number) result = false
         }
         // Check 3x3 subgrid
-        val subgridRowStart = row - row % subgridSize
-        val subgridColStart = col - col % subgridSize
-        for (r in subgridRowStart until subgridRowStart + subgridSize) {
-            for (c in subgridColStart until subgridColStart + subgridSize) {
-                if (grid[r][c] == number) return false
+        val subgridRowStart = row - row % SUB_GRID_SIZE
+        val subgridColStart = col - col % SUB_GRID_SIZE
+        for (r in subgridRowStart until subgridRowStart + SUB_GRID_SIZE) {
+            for (c in subgridColStart until subgridColStart + SUB_GRID_SIZE) {
+                if (grid[r][c] == number) result = false
             }
         }
-        return true // Placement is valid
+        return result
     }
 }
 

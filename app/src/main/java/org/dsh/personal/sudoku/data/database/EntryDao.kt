@@ -16,15 +16,29 @@ interface EntryDao {
     suspend fun clearStatistic()
 
     // Query to get statistics for a specific difficulty
-    @Query("SELECT * FROM statistic_entries WHERE difficulty = :difficulty ORDER BY timeFinished DESC")
+    @Query(
+        "SELECT * " +
+                "FROM statistic_entries " +
+                "WHERE difficulty = :difficulty " +
+                "ORDER BY timeFinished DESC"
+    )
     fun getGameStatisticsByDifficulty(difficulty: String): Flow<List<StatisticEntry>>
 
     // Query to get solved games for a specific difficulty, ordered by completion time (fastest first)
-    @Query("SELECT * FROM statistic_entries WHERE difficulty = :difficulty AND isSolved = 1 ORDER BY completionTimeMillis ASC")
+    @Query(
+        "SELECT * " +
+                "FROM statistic_entries " +
+                "WHERE difficulty = :difficulty " +
+                "AND isSolved = 1 " +
+                "ORDER BY completionTimeMillis ASC"
+    )
     fun getSolvedGameStatisticsByDifficulty(difficulty: String): Flow<List<StatisticEntry>>
 
     // Query to calculate the total number of games played
-    @Query("SELECT COUNT(*) FROM statistic_entries")
+    @Query(
+        "SELECT COUNT(*) " +
+                "FROM statistic_entries"
+    )
     fun getTotalGamesPlayed(): Flow<Int>
 
     // Query to calculate the total number of games won

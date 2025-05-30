@@ -39,6 +39,8 @@ import org.dsh.personal.sudoku.presentation.view.Dimens
 import java.text.DecimalFormat
 import java.util.Locale
 
+private const val PercentAll = 100.0
+
 @Composable
 fun StatItem(label: String, value: String) {
     Row(
@@ -68,7 +70,7 @@ fun DifficultyStatsSection(difficulty: Difficulty, stats: DifficultyStats) {
         StatItem(stringResource(R.string.games_played), stats.gamesPlayed.toString())
         // Calculate and display win rate for this difficulty
         val winRate = if (stats.gamesPlayed > 0) {
-            (stats.gamesWon.toDouble() / stats.gamesPlayed.toDouble()) * 100.0
+            (stats.gamesWon.toDouble() / stats.gamesPlayed.toDouble()) * PercentAll
         } else {
             0.0
         }
@@ -159,7 +161,7 @@ fun SudokuAnalyticsScreen(onNavigateBack: () -> Unit, stats: SudokuGameStats, on
                         StatItem(stringResource(R.string.games_solved), stats.totalGamesWon.toString())
                         // Calculate and display overall win rate
                         val overallWinRate = if (stats.totalGamesPlayed > 0) {
-                            (stats.totalGamesWon.toDouble() / stats.totalGamesPlayed.toDouble()) * 100.0
+                            (stats.totalGamesWon.toDouble() / stats.totalGamesPlayed.toDouble()) * PercentAll
                         } else {
                             0.0
                         }
@@ -248,6 +250,7 @@ fun SudokuAnalyticsScreen(onNavigateBack: () -> Unit, stats: SudokuGameStats, on
 
 @Composable
 @ReadOnlyComposable
+@Suppress("MagicNumber")
 fun formatTime(millis: Long): String {
     if (millis == 0L || millis == Long.MAX_VALUE) {
         return stringResource(R.string.n_a)

@@ -4,8 +4,8 @@
 
 A classic Sudoku game for Android, built with Jetpack Compose.
 
-|       Gameplay Screen        | Main Menu (Optional)                                  |
-|:----------------------------:| :---------------------------------------------------: |
+|                Gameplay Screen                 |              Main Menu (Optional)               |
+|:----------------------------------------------:|:-----------------------------------------------:|
 | ![Gameplay Screenshot](./screenshots/game.png) | ![Main Menu Screenshot](./screenshots/main.png) |
 
 ---
@@ -19,6 +19,9 @@ A classic Sudoku game for Android, built with Jetpack Compose.
 *   Key Feature 2: Error Highlighting
 *   Key Feature 3: Light/Dark Theme
 ---
+
+## Sonarcloud analysis
+https://sonarcloud.io/project/overview?id=DmytroShulha_sudoku
 
 ## Tech Stack
 

@@ -283,7 +283,13 @@ fun InfoItem(
 }
 
 @Composable
-fun LinkItem(icon: ImageVector, subicon: ImageVector, text: String, defaultElevation: Dp = Dimens.VerySmall, onClick: () -> Unit) {
+fun LinkItem(
+    icon: ImageVector,
+    subicon: ImageVector,
+    text: String,
+    defaultElevation: Dp = Dimens.VerySmall,
+    onClick: () -> Unit,
+) {
     Card(
         onClick = onClick,
         modifier = Modifier
@@ -339,7 +345,8 @@ fun AboutScreenPreviewLight() {
 }
 
 @Preview(showBackground = true,
-    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES or android.content.res.Configuration.UI_MODE_TYPE_NORMAL
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
+            or android.content.res.Configuration.UI_MODE_TYPE_NORMAL
 )
 @Composable
 fun AboutScreenPreviewDark() {

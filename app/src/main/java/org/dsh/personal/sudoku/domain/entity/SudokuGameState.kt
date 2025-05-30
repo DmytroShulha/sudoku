@@ -1,6 +1,7 @@
 package org.dsh.personal.sudoku.domain.entity
 
 import kotlinx.serialization.Serializable
+import org.dsh.personal.sudoku.domain.ROW_SIZE
 import kotlin.time.Duration
 
 @Serializable
@@ -25,7 +26,13 @@ data class SudokuGameState(
     val timerMillis: Long = 0L, // Optional: for game timer
     val hintsRemaining: Int = 3, // Optional: for hint system
     val gameId: String, // Unique ID for this specific game instance/puzzle
-    val availableNumbers: List<SudokuNumberButtonState> = (1..9).map { number -> SudokuNumberButtonState(number, true, 9) },
+    val availableNumbers: List<SudokuNumberButtonState> = (1..ROW_SIZE).map { number ->
+        SudokuNumberButtonState(
+            number,
+            true,
+            ROW_SIZE
+        )
+    },
     val history: List<SudokuChange> = emptyList(),
     val redoStack: List<SudokuChange> = emptyList(),
     val inputMode: InputMode = InputMode.VALUE, // Add input mode state

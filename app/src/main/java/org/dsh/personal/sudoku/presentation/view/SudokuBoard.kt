@@ -5,9 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,6 +22,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import org.dsh.personal.sudoku.domain.BLOCK_SIZE
+import org.dsh.personal.sudoku.domain.ROW_SIZE
 import org.dsh.personal.sudoku.domain.entity.SudokuCellNote
 import org.dsh.personal.sudoku.domain.entity.SudokuCellState
 import org.dsh.personal.sudoku.presentation.SudokuViewModel
@@ -38,8 +38,8 @@ fun SudokuBoardView(
     modifier: Modifier = Modifier,
     settings: SudokuViewModel.SudokuSettings
 ) {
-    val boardSize = 9
-    val subgridSize = 3
+    val boardSize = ROW_SIZE
+    val subgridSize = BLOCK_SIZE
     val thickLineDp = 2.dp
     val thinLineDp = 1.dp
     val lineColor = MaterialTheme.colorScheme.tertiary
@@ -96,7 +96,7 @@ fun SudokuBoardView(
 }
 
 @Composable
-fun RowScope.VerticalDivider(
+fun VerticalDivider(
     thickness: Dp,
     color: Color,
     modifier: Modifier = Modifier
@@ -110,7 +110,7 @@ fun RowScope.VerticalDivider(
 }
 
 @Composable
-fun ColumnScope.HorizontalDivider(
+fun HorizontalDivider(
     thickness: Dp,
     color: Color,
     modifier: Modifier = Modifier
@@ -125,9 +125,11 @@ fun ColumnScope.HorizontalDivider(
 
 // Preview for SudokuBoardView
 @Preview(showBackground = true, widthDp = 360, heightDp = 420,
-    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES or android.content.res.Configuration.UI_MODE_TYPE_NORMAL
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
+            or android.content.res.Configuration.UI_MODE_TYPE_NORMAL
 )
 @Composable
+@Suppress("MagicNumber")
 fun SudokuBoardViewPreview() {
     // Create a sample board for preview
     val sampleBoard = List(9) { rowIndex ->
@@ -140,7 +142,11 @@ fun SudokuBoardViewPreview() {
                 else -> 0 // Empty
             }
             val isClue = (rowIndex == 0 && colIndex == 0) || (rowIndex == 2 && colIndex == 2)
-            val notes = if (rowIndex == 3 && colIndex == 3) setOf(SudokuCellNote(1), SudokuCellNote(4), SudokuCellNote(6)) else emptySet()
+            val notes = if (rowIndex == 3 && colIndex == 3) setOf(
+                SudokuCellNote(1),
+                SudokuCellNote(4),
+                SudokuCellNote(6)
+            ) else emptySet()
             val isError = rowIndex == 2 && colIndex == 2 // Example error
 
             SudokuCellState(
@@ -170,6 +176,7 @@ fun SudokuBoardViewPreview() {
 
 
 // Preview for SudokuBoardView
+@Suppress("MagicNumber")
 @Preview(showBackground = true, widthDp = 360, heightDp = 420)
 @Composable
 fun SudokuBoardViewPreviewLight() {
@@ -184,7 +191,11 @@ fun SudokuBoardViewPreviewLight() {
                 else -> 0 // Empty
             }
             val isClue = (rowIndex == 0 && colIndex == 0) || (rowIndex == 2 && colIndex == 2)
-            val notes = if (rowIndex == 3 && colIndex == 3) setOf(SudokuCellNote(1), SudokuCellNote(4), SudokuCellNote(6)) else emptySet()
+            val notes = if (rowIndex == 3 && colIndex == 3) setOf(
+                SudokuCellNote(1),
+                SudokuCellNote(4),
+                SudokuCellNote(6)
+            ) else emptySet()
             val isError = rowIndex == 2 && colIndex == 2 // Example error
 
             SudokuCellState(

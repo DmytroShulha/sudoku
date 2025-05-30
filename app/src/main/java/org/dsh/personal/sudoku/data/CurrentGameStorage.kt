@@ -32,8 +32,7 @@ class CurrentGameStorage(private val context: Context) {
             if (jsonString != null) {
                 try {
                     Json.decodeFromString<SudokuGameState>(jsonString)
-                } catch (e: Exception) {
-                    e.printStackTrace()
+                } catch (_: Exception) {
                     null
                 }
             } else {

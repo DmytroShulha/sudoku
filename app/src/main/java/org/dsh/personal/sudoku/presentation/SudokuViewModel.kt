@@ -136,7 +136,9 @@ class SudokuViewModel(
                     for (r in newGrid.indices) {
                         for (c in newGrid[r].indices) {
                             newGrid[r][c].isHighlighted = newGrid[r][c].value == cell.value
-                            newGrid[r][c].notes = newGrid[r][c].notes.map { it.copy(isHighlighted = it.value == cell.value) }.toSet()
+                            newGrid[r][c].notes =
+                                newGrid[r][c].notes.map { it.copy(isHighlighted = it.value == cell.value) }
+                                    .toSet()
                         }
                     }
                 } else {
@@ -193,11 +195,16 @@ class SudokuViewModel(
                     newGrid[lastChange.rowIndex][lastChange.colIndex] = updatedCell
 
                     // Re-validate the board after undo
-                    validateBoard(newGrid, if(updatedCell.value != 0) updatedCell.value else cellToUndo.value, lastChange.rowIndex, lastChange.colIndex)
+                    validateBoard(
+                        grid = newGrid,
+                        cellNumber = if (updatedCell.value != 0) updatedCell.value else cellToUndo.value,
+                        cellRow = lastChange.rowIndex,
+                        cellCol = lastChange.colIndex
+                    )
 
                     // Update available numbers
                     val newAvailableNumbers =
-                        calculateAvailableNumbers(newGrid.map { it.map { it.value } })
+                        calculateAvailableNumbers(newGrid.map { newRow-> newRow.map { it.value } })
                     // Add the undone change to the redo stack (optional)
                     val newRedoStack = currentState.redoStack + lastChange
 
@@ -366,7 +373,7 @@ class SudokuViewModel(
 
         // Update available numbers if you are tracking them based on placed numbers
         val newAvailableNumbers =
-            calculateAvailableNumbers(newGrid.map { it.map { it.value } })
+            calculateAvailableNumbers(newGrid.map { newRow-> newRow.map { value-> value.value } })
 
         return currentState.copy(
             boardState = newBoardState,
@@ -391,12 +398,15 @@ class SudokuViewModel(
 
     fun resumeGame() {
         viewModelScope.launch {
-            _gameState.update { currentGameHandler.loadGame()!! }
+            currentGameHandler.loadGame()?.let { game->
+                _gameState.update { game }
+            }
+
             startGameTimer()
         }
     }
 
-    fun startGameTimer() {
+    private fun startGameTimer() {
         if (_sudokuSettings.value.timerState == TimerState.Stopped) {
             _sudokuSettings.update {
                 it.copy(timerState = TimerState.Running, isPaused = false, duration = gameState.value.duration)
@@ -426,19 +436,12 @@ class SudokuViewModel(
         }
     }
 
-    // Call this when the game is finished or the user quits
-    fun stopGameTimer() {
-        _sudokuSettings.update {
-            it.copy(timerState = TimerState.Stopped, isPaused = false)
-        }
-        timerJob?.cancel() // Cancel the counting job
-    }
-
     private fun startCounting() {
         timerJob = viewModelScope.launch {
             while (isActive && _sudokuSettings.value.timerState == TimerState.Running) {
                 delay(1.seconds)
-                _sudokuSettings.value = _sudokuSettings.value.copy(duration = _sudokuSettings.value.duration + 1.seconds)
+                _sudokuSettings.value =
+                    _sudokuSettings.value.copy(duration = _sudokuSettings.value.duration + 1.seconds)
             }
         }
     }

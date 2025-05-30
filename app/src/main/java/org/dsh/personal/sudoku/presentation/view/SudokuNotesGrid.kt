@@ -28,13 +28,15 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.dsh.personal.sudoku.domain.BLOCK_SIZE
 import org.dsh.personal.sudoku.domain.entity.SudokuCellNote
 
 @Composable
 fun NotesGrid(notes: Set<SudokuCellNote>, boxSize: IntSize) {
 
     val density = LocalDensity.current // Get the current density
-    val boxSizeDp: Dp = remember(boxSize) { with(density) { ((boxSize.width.toDp() - 8.dp).toPx() / 3).toDp() } }
+    val boxSizeDp: Dp =
+        remember(boxSize) { with(density) { ((boxSize.width.toDp() - 8.dp).toPx() / BLOCK_SIZE).toDp() } }
 
     Column(
         modifier = Modifier

@@ -9,14 +9,15 @@ import org.dsh.personal.sudoku.domain.useCase.StoreStatisticUseCase
 import org.dsh.personal.sudoku.domain.useCase.ValidateBoardUseCase
 import org.dsh.personal.sudoku.domain.useCase.ValidateNoteBoardUseCase
 import org.dsh.personal.sudoku.presentation.game.ThemeSettingsManager
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val sudokuDomainDi = module {
     single { ThemeSettingsManager(get()) }
     factory { GenerateGameFieldUseCase(get(), get()) }
-    factory { CalculateAvailableNumbersUseCase() }
-    factory { ValidateBoardUseCase() }
-    factory { ValidateNoteBoardUseCase() }
+    factory { CalculateAvailableNumbersUseCase(get(named("DEFAULT"))) }
+    factory { ValidateBoardUseCase(get(named("DEFAULT"))) }
+    factory { ValidateNoteBoardUseCase(get(named("DEFAULT"))) }
     factory { CurrentGameHandler(get()) }
     factory { StoreStatisticUseCase(get()) }
     factory { ReadStatisticUseCase(get()) }
