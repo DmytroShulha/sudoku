@@ -6,10 +6,6 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val appModule = module {
-    includes(coroutineDispatchersModule)
-}
-
-val coroutineDispatchersModule = module {
     @Suppress("InjectDispatcher")
     single<CoroutineDispatcher>(named("IO")) { Dispatchers.IO }
     @Suppress("InjectDispatcher")
@@ -17,3 +13,4 @@ val coroutineDispatchersModule = module {
     @Suppress("InjectDispatcher")
     single<CoroutineDispatcher>(named("DEFAULT")) { Dispatchers.Default }
 }
+

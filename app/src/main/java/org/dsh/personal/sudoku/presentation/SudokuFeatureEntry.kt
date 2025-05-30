@@ -69,7 +69,6 @@ object SudokuFeatureEntry {
             onStatisticClick = { navController.navigate(SudokuRoutes.STATISTIC_SCREEN) })
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun SudokuGameScreen(
         navController: NavController,
