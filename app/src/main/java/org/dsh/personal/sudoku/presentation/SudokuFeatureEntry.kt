@@ -13,7 +13,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -24,10 +23,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import kotlinx.coroutines.CoroutineScope
@@ -37,8 +32,11 @@ import org.dsh.personal.sudoku.SudokuRoutes
 import org.dsh.personal.sudoku.domain.entity.Difficulty
 import org.dsh.personal.sudoku.domain.entity.SudokuGameState
 import org.dsh.personal.sudoku.presentation.about.AboutScreen
+import org.dsh.personal.sudoku.presentation.about.AboutScreenData
 import org.dsh.personal.sudoku.presentation.about.AboutViewModel
 import org.dsh.personal.sudoku.presentation.game.SudokuGame
+import org.dsh.personal.sudoku.presentation.game.SudokuGameCallbacks
+import org.dsh.personal.sudoku.presentation.game.SudokuGameSideEffects
 import org.dsh.personal.sudoku.presentation.main.DifficultySelectionSheet
 import org.dsh.personal.sudoku.presentation.main.GameToolBar
 import org.dsh.personal.sudoku.presentation.main.SudokuMainMenu
@@ -92,33 +90,7 @@ object SudokuFeatureEntry {
 
         var showThemeDialog by remember { mutableStateOf(false) }
         val gameState by viewModel.gameState.collectAsState()
-        LaunchedEffect(gameState.isSolved) {
-            if (gameState.isSolved) {
-                navController.popBackStack(
-                    SudokuRoutes.MAIN_MENU, false
-                )
-                navController.navigate(SudokuRoutes.SUCCESS_SCREEN)
-            }
-        }
-
-        val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
-
-        DisposableEffect(lifecycleOwner) {
-            val observer = LifecycleEventObserver { _, event ->
-                when (event) {
-                    Lifecycle.Event.ON_PAUSE -> {
-                        viewModel.pauseGameTimer()
-                    }
-
-                    else -> {}
-                }
-            }
-            lifecycleOwner.lifecycle.addObserver(observer)
-
-            onDispose {
-                lifecycleOwner.lifecycle.removeObserver(observer)
-            }
-        }
+        SudokuGameSideEffects(gameState, navController, viewModel)
 
         PersonalTheme(isDark, useMaterial3Colors) {
             Scaffold(
@@ -139,15 +111,17 @@ object SudokuFeatureEntry {
                 }) { padding ->
 
                 SudokuGame(
-                    windowSizeClass = windowSizeClass,
                     modifier = Modifier.padding(padding),
+                    windowSizeClass = windowSizeClass,
                     gameState = gameState,
-                    onCellClick = viewModel::selectCell,
-                    onNumberClick = viewModel::inputNumber2,
-                    undoClick = viewModel::undo,
-                    notesClick = viewModel::toggleInputMode,
                     sudokuSettings = settings,
-                    resumeGame = viewModel::resumeGameTimer
+                    callbacks = SudokuGameCallbacks(
+                        onCellClick = viewModel::selectCell,
+                        onNumberClick = viewModel::inputNumber2,
+                        undoClick = viewModel::undo,
+                        notesClick = viewModel::toggleInputMode,
+                        resumeGame = viewModel::resumeGameTimer
+                    )
                 )
             }
 
@@ -167,15 +141,19 @@ object SudokuFeatureEntry {
         val uriHandler = LocalUriHandler.current
         val urlHowToPlay = stringResource(R.string.sudoku_how_to_play)
         val githubRepo = stringResource(R.string.sudoku_git_repo_url)
+        val playStoreGameUrl = stringResource(R.string.play_store_game_url)
         val playStoreUrl = stringResource(R.string.play_store_url)
 
         AboutScreen(
-            appName = stringResource(R.string.app_name),
             onHowToPlayClick = { uriHandler.openUri(urlHowToPlay) },
             onNavigateBack = navController::popBackStack,
-            appVersion = viewModel.appVersionName,
-            playStoreUrl = playStoreUrl,
-            githubRepo = githubRepo,
+            params = AboutScreenData(
+                appName = stringResource(R.string.app_name),
+                appVersion = viewModel.appVersionName,
+                playStoreGameUrl = playStoreGameUrl,
+                githubRepo = githubRepo,
+                playStoreUrl = playStoreUrl
+            )
         )
     }
 

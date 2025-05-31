@@ -165,7 +165,7 @@ fun SudokuBoardViewPreview() {
                 SudokuBoardView(
                     board = sampleBoard,
                     selectedCellPosition = Pair(1, 1), // Example selected cell
-                    onCellClick = { row, col ->
+                    onCellClick = { _, _ ->
                     },
                     settings = SudokuViewModel.SudokuSettings()
                 )
@@ -214,7 +214,7 @@ fun SudokuBoardViewPreviewLight() {
                 SudokuBoardView(
                     board = sampleBoard,
                     selectedCellPosition = Pair(1, 1), // Example selected cell
-                    onCellClick = { row, col ->
+                    onCellClick = { _, _ ->
                     },
                     settings = SudokuViewModel.SudokuSettings()
                 )

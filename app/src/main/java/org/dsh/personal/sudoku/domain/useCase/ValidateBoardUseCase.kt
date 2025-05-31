@@ -27,10 +27,7 @@ class ValidateBoardUseCase (private val defaultDispatcher: CoroutineDispatcher) 
     ) = withContext(defaultDispatcher) {
         for (r in grid.indices) {
             for (c in grid[r].indices) {
-                grid[r][c].apply {
-                    isError = false // Clear cell error
-                    notes = notes.map { it.copy(isHighlighted = false) }.toSet()
-                }
+                grid[r][c].isError = false // Clear cell error
             }
         }
 
