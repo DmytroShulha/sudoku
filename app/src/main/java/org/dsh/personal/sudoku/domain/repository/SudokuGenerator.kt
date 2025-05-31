@@ -3,7 +3,7 @@ package org.dsh.personal.sudoku.domain.repository
 import kotlinx.coroutines.CoroutineDispatcher
 import org.dsh.personal.sudoku.domain.entity.Difficulty
 
-interface SudokuGenerator {
+fun interface SudokuGenerator {
     suspend fun generate(
         difficulty: Difficulty,
         defaultDispatcher: CoroutineDispatcher,

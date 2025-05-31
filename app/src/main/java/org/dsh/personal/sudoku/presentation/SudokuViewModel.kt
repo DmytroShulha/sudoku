@@ -15,27 +15,26 @@ import kotlinx.coroutines.launch
 import org.dsh.personal.sudoku.domain.entity.Difficulty
 import org.dsh.personal.sudoku.domain.entity.InputMode
 import org.dsh.personal.sudoku.domain.entity.SudokuBoardState
+import org.dsh.personal.sudoku.domain.entity.SudokuBoardTheme
+import org.dsh.personal.sudoku.domain.entity.SudokuCellNote
 import org.dsh.personal.sudoku.domain.entity.SudokuCellState
 import org.dsh.personal.sudoku.domain.entity.SudokuChange
+import org.dsh.personal.sudoku.domain.entity.SudokuEffects
 import org.dsh.personal.sudoku.domain.entity.SudokuGameState
 import org.dsh.personal.sudoku.domain.entity.SudokuGameStatistic
 import org.dsh.personal.sudoku.domain.useCase.CalculateAvailableNumbersUseCase
+import org.dsh.personal.sudoku.domain.useCase.CurrentGameHandler
 import org.dsh.personal.sudoku.domain.useCase.GenerateGameFieldUseCase
 import org.dsh.personal.sudoku.domain.useCase.ValidateBoardUseCase
-import org.dsh.personal.sudoku.presentation.game.ThemeSettingsManager
-import org.dsh.personal.sudoku.domain.entity.SudokuBoardTheme
-import org.dsh.personal.sudoku.domain.entity.SudokuCellNote
-import org.dsh.personal.sudoku.domain.entity.SudokuEffects
-import org.dsh.personal.sudoku.domain.useCase.CurrentGameHandler
 import org.dsh.personal.sudoku.domain.useCase.ValidateNoteBoardUseCase
+import org.dsh.personal.sudoku.presentation.game.ThemeSettingsManager
 import org.dsh.personal.sudoku.utility.initializeEmptyGame
 import org.dsh.personal.sudoku.utility.toBoard
-import kotlin.collections.plus
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 class SudokuViewModel(
-    private val themeSettingsManager: ThemeSettingsManager, // Inject ThemeSettingsManager
+    private val themeSettingsManager: ThemeSettingsManager,
     private val generateGameField: GenerateGameFieldUseCase,
     private val calculateAvailableNumbers: CalculateAvailableNumbersUseCase,
     private val validateBoard: ValidateBoardUseCase,
@@ -88,14 +87,16 @@ class SudokuViewModel(
 
         val initialGrid = puzzleGridValues.mapIndexed { rowIndex, row ->
             row.mapIndexed { colIndex, value ->
+
                 SudokuCellState(
                     id = "r${rowIndex}_c${colIndex}",
                     value = value,
-                    isClue = value != 0 // If value is not 0, it's a clue
+                    isClue = value != 0,
                 )
             }
-                .toMutableStateList() // Using toMutableStateList for individual cell observability if needed
+                .toMutableStateList()
         }.toMutableStateList()
+
 
 
         val board = SudokuBoardState(
@@ -122,7 +123,13 @@ class SudokuViewModel(
         _gameState.update { currentState ->
             val currentGrid = currentState.boardState.grid
             val newGrid = currentGrid.map { r ->
-                r.map { c -> c.copy(isHighlighted = false) }.toMutableStateList()
+                r.map { c ->
+                    c.copy(
+                        isHighlighted = false,
+                        notes = c.notes.toMutableSet().map { it.copy(isHighlighted = false) }
+                            .toSet()
+                    )
+                }.toMutableStateList()
             }.toMutableStateList() // Deep copy and clear previous highlighting
 
             val selectedCell = currentState.boardState.getCell(row, col)
@@ -251,7 +258,6 @@ class SudokuViewModel(
                         }.also {
                             storeGameState(it)
                         }
-
                     } else {
                         currentState // No change if no cell is selected or it's a clue
                     }
@@ -278,7 +284,7 @@ class SudokuViewModel(
                         if (exists != null)
                             remove(exists)
                         else
-                            add(SudokuCellNote(value = number))
+                            add(SudokuCellNote(value = number, isVisible = true, isHighlighted = true))
                     }.toSet()
             )
         } else {
@@ -291,21 +297,10 @@ class SudokuViewModel(
             r.map { c -> c.copy(isHighlighted = false) }
                 .toMutableStateList()
         }.toMutableStateList() // Clear existing
-        if (number != 0) {
-            for (r in gridAfterHighlighting.indices) {
-                for (c in gridAfterHighlighting[r].indices) {
-                    if (gridAfterHighlighting[r][c].value == number) {
-                        gridAfterHighlighting[r][c].isHighlighted = true
-                    }
-                }
-            }
-        } else {
-            for (r in gridAfterHighlighting.indices) {
-                for (c in gridAfterHighlighting[r].indices) {
-                    gridAfterHighlighting[r][c].isHighlighted = false
-                }
-            }
-        }
+
+        validateNoteBoard(gridAfterHighlighting, number, row, col)
+
+        highlightSpecifiedNumber(number, gridAfterHighlighting)
 
         validateNoteBoard(gridAfterHighlighting, number, row, col)
 
@@ -344,21 +339,7 @@ class SudokuViewModel(
             r.map { c -> c.copy(isHighlighted = false) }
                 .toMutableStateList()
         }.toMutableStateList() // Clear existing
-        if (number != 0) {
-            for (r in gridAfterHighlighting.indices) {
-                for (c in gridAfterHighlighting[r].indices) {
-                    if (gridAfterHighlighting[r][c].value == number) {
-                        gridAfterHighlighting[r][c].isHighlighted = true
-                    }
-                }
-            }
-        } else {
-            for (r in gridAfterHighlighting.indices) {
-                for (c in gridAfterHighlighting[r].indices) {
-                    gridAfterHighlighting[r][c].isHighlighted = false
-                }
-            }
-        }
+        highlightSpecifiedNumber(number, gridAfterHighlighting)
 
         // Validate the board after the change
         validateBoard(gridAfterHighlighting, if (number != 0) number else prevVal, row, col) // This will update isError
@@ -388,6 +369,35 @@ class SudokuViewModel(
                 currentState.gameStatistic
             }
         )
+    }
+
+    private fun highlightSpecifiedNumber(
+        number: Int,
+        gridAfterHighlighting: SnapshotStateList<SnapshotStateList<SudokuCellState>>
+    ) {
+        if (number != 0) {
+            for (r in gridAfterHighlighting.indices) {
+                for (c in gridAfterHighlighting[r].indices) {
+                    if (gridAfterHighlighting[r][c].value == number) {
+                        gridAfterHighlighting[r][c].isHighlighted = true
+                    } else if (gridAfterHighlighting[r][c].value == 0) {
+                        gridAfterHighlighting[r][c].notes =
+                            gridAfterHighlighting[r][c].notes.map { it.copy(isHighlighted = it.value == number) }
+                                .toSet()
+                    }
+                }
+            }
+        } else {
+            for (r in gridAfterHighlighting.indices) {
+                for (c in gridAfterHighlighting[r].indices) {
+                    gridAfterHighlighting[r][c].isHighlighted = false
+                    gridAfterHighlighting[r][c].notes =
+                        gridAfterHighlighting[r][c].notes
+                            .map { it.copy(isHighlighted = false) }
+                            .toSet()
+                }
+            }
+        }
     }
 
     fun startNewGame(difficulty: Difficulty) {

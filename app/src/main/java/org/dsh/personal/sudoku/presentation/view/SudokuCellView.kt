@@ -116,7 +116,7 @@ private fun PerformEffects(
 // Preview for SudokuCellView
 @Preview(showBackground = true)
 @Composable
-fun SudokuCellViewPreview_Clue() {
+fun SudokuCellViewPreviewClue() {
     SudokuCellView(
         cell = SudokuCellState(id = SyncStateContract.Constants.DATA, value = 5, isClue = true),
         isSelected = false,
@@ -127,7 +127,7 @@ fun SudokuCellViewPreview_Clue() {
 
 @Preview(showBackground = true)
 @Composable
-fun SudokuCellViewPreview_UserValue() {
+fun SudokuCellViewPreviewUserValue() {
     SudokuCellView(
         cell = SudokuCellState(id = SyncStateContract.Constants.DATA, value = 3, isClue = false),
         isSelected = true,
@@ -138,7 +138,7 @@ fun SudokuCellViewPreview_UserValue() {
 
 @Preview(showBackground = true)
 @Composable
-fun SudokuCellViewPreview_Error() {
+fun SudokuCellViewPreviewError() {
     SudokuCellView(
         cell = SudokuCellState(
             id = SyncStateContract.Constants.DATA,
@@ -154,7 +154,7 @@ fun SudokuCellViewPreview_Error() {
 
 @Preview(showBackground = true)
 @Composable
-fun SudokuCellViewPreview_Notes() {
+fun SudokuCellViewPreviewNotes() {
     SudokuCellView(
         cell = SudokuCellState(
             id = SyncStateContract.Constants.DATA,
@@ -170,7 +170,7 @@ fun SudokuCellViewPreview_Notes() {
 
 @Preview(showBackground = true)
 @Composable
-fun SudokuCellViewPreview_EmptySelected() {
+fun SudokuCellViewPreviewEmptySelected() {
     SudokuCellView(
         cell = SudokuCellState(id = SyncStateContract.Constants.DATA, value = 0, isClue = false),
         isSelected = true,
@@ -186,7 +186,7 @@ fun SudokuCellViewPreview_EmptySelected() {
             or android.content.res.Configuration.UI_MODE_TYPE_NORMAL
 )
 @Composable
-fun SudokuCellViewPreview_ClueDark() {
+fun SudokuCellViewPreviewClueDark() {
     SudokuCellView(
         cell = SudokuCellState(id = SyncStateContract.Constants.DATA, value = 5, isClue = true),
         isSelected = false,
@@ -201,7 +201,7 @@ fun SudokuCellViewPreview_ClueDark() {
             or android.content.res.Configuration.UI_MODE_TYPE_NORMAL
 )
 @Composable
-fun SudokuCellViewPreview_UserValueDark() {
+fun SudokuCellViewPreviewUserValueDark() {
     SudokuCellView(
         cell = SudokuCellState(id = SyncStateContract.Constants.DATA, value = 3, isClue = false),
         isSelected = true,
@@ -217,7 +217,7 @@ fun SudokuCellViewPreview_UserValueDark() {
 )
 @Composable
 @Suppress("MagicNumber")
-fun SudokuCellViewPreview_ErrorDark() {
+fun SudokuCellViewPreviewErrorDark() {
     SudokuCellView(
         cell = SudokuCellState(
             id = SyncStateContract.Constants.DATA,
@@ -238,7 +238,7 @@ fun SudokuCellViewPreview_ErrorDark() {
 )
 @Composable
 @Suppress("MagicNumber")
-fun SudokuCellViewPreview_NotesDark() {
+fun SudokuCellViewPreviewNotesDark() {
     SudokuCellView(
         cell = SudokuCellState(
             id = SyncStateContract.Constants.DATA,
@@ -259,7 +259,7 @@ fun SudokuCellViewPreview_NotesDark() {
 )
 @Composable
 @Suppress("MagicNumber")
-fun SudokuCellViewPreview_EmptySelectedDark() {
+fun SudokuCellViewPreviewEmptySelectedDark() {
     SudokuCellView(
         cell = SudokuCellState(id = SyncStateContract.Constants.DATA, value = 0, isClue = false),
         isSelected = true,

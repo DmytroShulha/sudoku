@@ -83,5 +83,7 @@
     <string name="sudoku_git_repo">GitHub Repository</string>
     <string name="sudoku_git_repo_url" translatable="false">https://github.com/DmytroShulha/sudoku</string>
     <string name="privacy_policy_url" tools:ignore="Typos">https://docs.google.com/document/d/e/2PACX-1vSr-wPOpxBSuFCX4th8RrtFN4FZdhGJfN8UcRZebUyvMhk_VSwM7Teuu9ehTIyXevKv1MLPpdesh-JF/pub</string>
-    <string name="play_store_url">https://play.google.com/store/apps/details?id=org.dsh.personal.sudoku</string>
+    <string name="play_store_game_url">https://play.google.com/store/apps/details?id=org.dsh.personal.sudoku</string>
+    <string name="play_store_url">https://play.google.com/store/apps/developer?id=Dmytro+Shulha</string>
+    <string name="more_games">More Games</string>
 </resources>

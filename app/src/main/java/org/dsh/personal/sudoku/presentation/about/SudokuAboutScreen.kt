@@ -1,5 +1,6 @@
 package org.dsh.personal.sudoku.presentation.about
 
+import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Copyright
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Gite
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.OpenInBrowser
@@ -60,14 +62,11 @@ import java.time.Year
 fun AboutScreen(
     onNavigateBack: () -> Unit,
     onHowToPlayClick: () -> Unit,
-    appName: String,
-    appVersion: String,
-    playStoreUrl: String,
-    githubRepo: String,
+    params: AboutScreenData
 ) {
     val uriHandler = LocalUriHandler.current
 
-    val versionText = stringResource(R.string.version_name, appVersion)
+    val versionText = stringResource(R.string.version_name, params.appVersion)
     val developedByText = stringResource(R.string.developed_by, DEVELOPER_NAME)
     val copyrightText = stringResource(R.string.all_rights_reserved, Year.now().value, DEVELOPER_NAME)
     val gameDescription = stringResource(R.string.game_description_short)
@@ -103,7 +102,7 @@ fun AboutScreen(
             // FR1.1 App Icon
             // FR1.2 Game Title
             // FR1.3 Version Number
-            AppHeaderSection(appName, versionText)
+            AppHeaderSection(params.appName, versionText)
 
             // FR2.1 Developer Information
             DeveloperSection(developedByText)
@@ -120,7 +119,12 @@ fun AboutScreen(
             // FR4.1 How to Play
             // FR4.2 Feedback/Support
             // FR4.3 Privacy Policy
-            LinksSection(onHowToPlayClick, uriHandler, privacyPolicyUrl, playStoreUrl, githubRepo)
+            LinksSection(
+                onHowToPlayClick = onHowToPlayClick,
+                uriHandler = uriHandler,
+                privacyPolicyUrl = privacyPolicyUrl,
+                params = params
+            )
 
             Spacer(Modifier.weight(1f)) // Pushes copyright to the bottom
 
@@ -129,6 +133,13 @@ fun AboutScreen(
         }
     }
 }
+data class AboutScreenData(
+    val appName: String,
+    val appVersion: String,
+    val playStoreGameUrl: String,
+    val playStoreUrl: String,
+    val githubRepo: String,
+)
 
 @Composable
 private fun CopyrightFooterSection(copyrightText: String) {
@@ -146,8 +157,7 @@ private fun LinksSection(
     onHowToPlayClick: () -> Unit,
     uriHandler: UriHandler,
     privacyPolicyUrl: String,
-    playStoreUrl: String,
-    githubRepo: String,
+    params: AboutScreenData,
 ) {
     val context = LocalContext.current
 
@@ -161,44 +171,43 @@ private fun LinksSection(
     LinkItem(
         icon = Icons.Filled.Gite,
         text = stringResource(R.string.sudoku_git_repo),
-        onClick = {
-            try {
-                uriHandler.openUri(githubRepo)
-            } catch (e: Exception) {
-                Log.e("AboutScreen", "Error opening URI", e)
-                Toast.makeText(context, R.string.something_went_wrong, Toast.LENGTH_SHORT).show()
-            }
-        },
+        onClick = { linkExecution(uriHandler, params.githubRepo, context) },
+        subicon = Icons.Filled.OpenInBrowser
+    )
+
+    LinkItem(
+        icon = Icons.Filled.Explore,
+        text = stringResource(R.string.more_games),
+        onClick = { linkExecution(uriHandler, params.playStoreUrl, context) },
         subicon = Icons.Filled.OpenInBrowser
     )
 
     LinkItem(
         icon = Icons.Filled.Email,
         text = stringResource(R.string.send_feedback),
-        onClick = {
-            try {
-                uriHandler.openUri(playStoreUrl)
-            } catch (e: Exception) {
-                Log.e("AboutScreen", "Error opening URI", e)
-                Toast.makeText(context, R.string.something_went_wrong, Toast.LENGTH_SHORT).show()
-            }
-        },
+        onClick = { linkExecution(uriHandler, params.playStoreGameUrl, context) },
         subicon = Icons.Filled.OpenInBrowser
     )
 
     LinkItem(
         icon = Icons.Filled.Policy,
         text = stringResource(R.string.privacy_policy),
-        onClick = {
-            try {
-                uriHandler.openUri(privacyPolicyUrl)
-            } catch (e: Exception) {
-                Log.e("AboutScreen", "Error opening URI", e)
-                Toast.makeText(context, R.string.something_went_wrong, Toast.LENGTH_SHORT).show()
-            }
-        },
+        onClick = { linkExecution(uriHandler, privacyPolicyUrl, context) },
         subicon = Icons.Filled.OpenInBrowser
     )
+}
+
+private fun linkExecution(
+    uriHandler: UriHandler,
+    link: String,
+    context: Context
+) {
+    try {
+        uriHandler.openUri(link)
+    } catch (e: Exception) {
+        Log.e("AboutScreen", "Error opening URI", e)
+        Toast.makeText(context, R.string.something_went_wrong, Toast.LENGTH_SHORT).show()
+    }
 }
 
 @Composable
@@ -336,10 +345,13 @@ fun AboutScreenPreviewLight() {
         AboutScreen(
             onNavigateBack = { },
             onHowToPlayClick = { },
-            appName = stringResource(R.string.app_name),
-            appVersion = "1.1.0",
-            playStoreUrl = "",
-            githubRepo = "githubRepo",
+            params = AboutScreenData(
+                appName = stringResource(R.string.app_name),
+                appVersion = "1.1.0",
+                playStoreUrl = "",
+                githubRepo = "githubRepo",
+                playStoreGameUrl = "",
+            )
         )
     }
 }
@@ -354,10 +366,13 @@ fun AboutScreenPreviewDark() {
         AboutScreen(
             onNavigateBack = { },
             onHowToPlayClick = { },
-            appName = stringResource(R.string.app_name),
-            appVersion = "1.1.0",
-            playStoreUrl = "",
-            githubRepo = "",
+            params = AboutScreenData(
+                appName = stringResource(R.string.app_name),
+                appVersion = "1.1.0",
+                playStoreUrl = "",
+                githubRepo = "",
+                playStoreGameUrl = "",
+            )
         )
     }
 }

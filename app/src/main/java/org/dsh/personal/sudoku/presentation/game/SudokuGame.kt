@@ -32,88 +32,99 @@ import org.dsh.personal.sudoku.presentation.view.SudokuNumberInputRow
 private const val WEIGHT04 = .4f
 private const val WEIGHT06 = .6f
 
+data class SudokuGameCallbacks(
+    val onCellClick: (row: Int, col: Int) -> Unit,
+    val onNumberClick: (Int) -> Unit,
+    val undoClick: () -> Unit,
+    val notesClick: () -> Unit,
+    val resumeGame: () -> Unit,
+)
 @Composable
 fun SudokuGame(
     modifier: Modifier = Modifier,
     gameState: SudokuGameState,
-    onCellClick: (row: Int, col: Int) -> Unit,
-    onNumberClick: (Int) -> Unit,
-    undoClick: () -> Unit,
-    notesClick: () -> Unit,
     sudokuSettings: SudokuViewModel.SudokuSettings,
-    resumeGame: () -> Unit,
+    callbacks: SudokuGameCallbacks,
     windowSizeClass: WindowSizeClass,
 ) {
-
     val isWideDisplay = windowSizeClass.widthSizeClass >= WindowWidthSizeClass.Expanded
 
     if (isWideDisplay) {
-        // Layout for wider screens (e.g., tablet landscape)
-        Row(modifier = modifier.fillMaxSize()) {
-            // Sudoku Board (takes more space)
-            Box(
-                modifier = Modifier
-                    .weight(WEIGHT06) // Take available space
-                    .aspectRatio(1f, true) // Keep square aspect ratio for the board
-                    .padding(Dimens.Large) // Add padding
-            ) {
-                if (sudokuSettings.isPaused) {
-                    Box(
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        IconButton(
-                            onClick = { resumeGame() },
-                            modifier = Modifier.align(Alignment.Center)
-                        ) {
-                            Icon(
-                                Icons.Outlined.PlayArrow,
-                                contentDescription = stringResource(R.string.play),
-                                modifier = Modifier.size(72.dp)
-                            )
-                        }
-                    }
-                } else {
-                    SudokuBoardView(
-                        board = gameState.boardState.grid,
-                        selectedCellPosition = gameState.selectedCell,
-                        onCellClick = onCellClick,
-                        settings = sudokuSettings,
-                        modifier = Modifier.fillMaxSize() // Fill the Box
-                    )
-                }
-            }
-
-            // Number Input and Controls (aligned to the side)
-            Column(
-                modifier = Modifier
-                    .weight(WEIGHT04)
-                    .width(IntrinsicSize.Min) // Take minimum width
-                    .padding(Dimens.Large)
-                    .align(Alignment.CenterVertically) // Vertically center the column
-            ) {
-                if (!sudokuSettings.isPaused) {
-                    SudokuNumberInputRow(
-                        numbers = gameState.availableNumbers,
-                        onNumberClick = onNumberClick,
-                        undoClick = undoClick,
-                        notesClick = notesClick,
-                        currentInputMode = gameState.inputMode,
-                    )
-                    Spacer(Modifier.height(Dimens.Large))
-                    // Add other controls or information here for wider screens
-                }
-            }
-        }
+        TabletSudokuGame(modifier, sudokuSettings, callbacks, gameState)
     } else {
-        // Original layout for smaller screens (phones)
-        Column(modifier = modifier) {
+        PhoneSudokuGame(modifier, sudokuSettings, callbacks, gameState)
+    }
+}
 
+@Composable
+private fun PhoneSudokuGame(
+    modifier: Modifier,
+    sudokuSettings: SudokuViewModel.SudokuSettings,
+    callbacks: SudokuGameCallbacks,
+    gameState: SudokuGameState
+) {
+    Column(modifier = modifier) {
+        if (sudokuSettings.isPaused) {
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                IconButton(
+                    onClick = callbacks.resumeGame,
+                    modifier = Modifier.align(Alignment.Center)
+                ) {
+                    Icon(
+                        Icons.Outlined.PlayArrow,
+                        contentDescription = stringResource(R.string.play),
+                        modifier = Modifier.size(72.dp)
+                    )
+                }
+            }
+        } else {
+            SudokuBoardView(
+                modifier = Modifier.padding(
+                    top = Dimens.Medium,
+                    start = Dimens.Small,
+                    end = Dimens.Small
+                ),
+                board = gameState.boardState.grid,
+                selectedCellPosition = gameState.selectedCell,
+                onCellClick = callbacks.onCellClick,
+                settings = sudokuSettings,
+            )
+            Spacer(Modifier.height(Dimens.Medium))
+
+            SudokuNumberInputRow(
+                numbers = gameState.availableNumbers,
+                onNumberClick = callbacks.onNumberClick,
+                undoClick = callbacks.undoClick,
+                notesClick = callbacks.notesClick,
+                currentInputMode = gameState.inputMode,
+            )
+        }
+    }
+}
+
+@Composable
+private fun TabletSudokuGame(
+    modifier: Modifier,
+    sudokuSettings: SudokuViewModel.SudokuSettings,
+    callbacks: SudokuGameCallbacks,
+    gameState: SudokuGameState
+) {
+    Row(modifier = modifier.fillMaxSize()) {
+        // Sudoku Board (takes more space)
+        Box(
+            modifier = Modifier
+                .weight(WEIGHT06) // Take available space
+                .aspectRatio(1f, true) // Keep square aspect ratio for the board
+                .padding(Dimens.Large) // Add padding
+        ) {
             if (sudokuSettings.isPaused) {
                 Box(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     IconButton(
-                        onClick = { resumeGame() },
+                        onClick = callbacks.resumeGame,
                         modifier = Modifier.align(Alignment.Center)
                     ) {
                         Icon(
@@ -125,21 +136,33 @@ fun SudokuGame(
                 }
             } else {
                 SudokuBoardView(
-                    modifier = Modifier.padding(top = Dimens.Medium, start = Dimens.Small, end = Dimens.Small),
                     board = gameState.boardState.grid,
                     selectedCellPosition = gameState.selectedCell,
-                    onCellClick = onCellClick,
+                    onCellClick = callbacks.onCellClick,
                     settings = sudokuSettings,
+                    modifier = Modifier.fillMaxSize() // Fill the Box
                 )
-                Spacer(Modifier.height(Dimens.Medium))
+            }
+        }
 
+        // Number Input and Controls (aligned to the side)
+        Column(
+            modifier = Modifier
+                .weight(WEIGHT04)
+                .width(IntrinsicSize.Min) // Take minimum width
+                .padding(Dimens.Large)
+                .align(Alignment.CenterVertically) // Vertically center the column
+        ) {
+            if (!sudokuSettings.isPaused) {
                 SudokuNumberInputRow(
                     numbers = gameState.availableNumbers,
-                    onNumberClick = onNumberClick,
-                    undoClick = undoClick,
-                    notesClick = notesClick,
+                    onNumberClick = callbacks.onNumberClick,
+                    undoClick = callbacks.undoClick,
+                    notesClick = callbacks.notesClick,
                     currentInputMode = gameState.inputMode,
                 )
+                Spacer(Modifier.height(Dimens.Large))
+                // Add other controls or information here for wider screens
             }
         }
     }

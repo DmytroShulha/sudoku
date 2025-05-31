@@ -4,10 +4,9 @@
 
 A classic Sudoku game for Android, built with Jetpack Compose.
 
-|                Gameplay Screen                 |              Main Menu (Optional)               |
+|                Gameplay Screen                 |                    Main Menu                    |
 |:----------------------------------------------:|:-----------------------------------------------:|
 | ![Gameplay Screenshot](./screenshots/game.png) | ![Main Menu Screenshot](./screenshots/main.png) |
-
 ---
 
 ## Features
