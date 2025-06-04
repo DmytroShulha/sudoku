@@ -30,11 +30,36 @@ jobs:
         run: ./gradlew lintDebug
 
       - name: Run unit tests (Debug)
-        run: ./gradlew testDebugUnitTest
+        run: ./gradlew testDebugUnitTest jacocoTestReport
 
       - name: Build Debug AAB
         # No signing needed for PR debug builds
         run: ./gradlew bundleDebug
+
+
+
+
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+              args: >
+                -Dsonar.organization=dmytro-shulha
+                -Dsonar.projectKey=DmytroShulha_sudoku
+                -Dsonar.sources=app/src/main/java             
+                -Dsonar.tests=app/src/test/java               
+                -Dsonar.java.coveragePlugin=jacoco
+                -Dsonar.coverage.jacoco.xmlReportPaths=app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+                -Dsonar.junit.reportPaths=app/build/test-results/testDebugUnitTest
 
       - name: Upload Debug AAB
         uses: actions/upload-artifact@v4
