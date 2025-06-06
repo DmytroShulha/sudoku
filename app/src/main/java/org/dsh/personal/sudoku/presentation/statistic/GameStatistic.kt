@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
@@ -25,8 +26,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -83,60 +86,14 @@ fun DifficultyStatsSection(difficulty: Difficulty, stats: DifficultyStats) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SudokuAnalyticsScreen(onNavigateBack: () -> Unit, stats: SudokuGameStats, onClearStat: ()-> Unit) {
-    val showConfirmDialog = remember { mutableStateOf(false) }
+    var showConfirmDialog by remember { mutableStateOf(false) }
     val decimalFormat = remember { DecimalFormat("#,##0.0") }
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.statistic)) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                ),
-                actions = {
-                    IconButton(onClick = { showConfirmDialog.value = true }) {
-                        Icon(
-                            imageVector = Icons.Filled.Delete,
-                            contentDescription = stringResource(R.string.clear_statistics),
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        )
-                    }
-                }
-            )
+            StatisticTopBar(onNavigateBack) { showConfirmDialog = true }
         }
     ) { paddingValues ->
-        if (showConfirmDialog.value) {
-            AlertDialog(
-                onDismissRequest = { showConfirmDialog.value = false },
-                title = { Text(stringResource(R.string.confirm_reset_title)) },
-                text = { Text(stringResource(R.string.confirm_reset_message)) },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            onClearStat()
-                            showConfirmDialog.value = false
-                        }
-                    ) {
-                        Text(stringResource(R.string.reset))
-                    }
-                },
-                dismissButton = {
-                    TextButton(
-                        onClick = { showConfirmDialog.value = false }
-                    ) {
-                        Text(stringResource(R.string.cancel))
-                    }
-                }
-            )
-        }
+        StatisticConfirmDialog(showConfirmDialog, onClearStat) { showConfirmDialog = false }
 
         LazyColumn(
             modifier = Modifier
@@ -145,107 +102,187 @@ fun SudokuAnalyticsScreen(onNavigateBack: () -> Unit, stats: SudokuGameStats, on
                 .fillMaxSize()
         ) {
             // Overall Stats Section
-            item {
-                Text(
-                    stringResource(R.string.overall_stats),
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.padding(bottom = Dimens.Medium)
-                )
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = Dimens.Large)
-                ) {
-                    Column(modifier = Modifier.padding(Dimens.Large)) {
-                        StatItem(stringResource(R.string.games_played), stats.totalGamesPlayed.toString())
-                        StatItem(stringResource(R.string.games_solved), stats.totalGamesWon.toString())
-                        // Calculate and display overall win rate
-                        val overallWinRate = if (stats.totalGamesPlayed > 0) {
-                            (stats.totalGamesWon.toDouble() / stats.totalGamesPlayed.toDouble()) * PercentAll
-                        } else {
-                            0.0
-                        }
-                        StatItem(stringResource(R.string.win_rate), "${decimalFormat.format(overallWinRate)}%")
-                    }
-                }
-            }
+            statOverAll(stats, decimalFormat)
 
             // Records Section (Overall Best Times) - Using the overall best times from SudokuGameStats
-            item {
-                Text(
-                    text = stringResource(R.string.records),
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.padding(bottom = Dimens.Medium)
-                )
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = Dimens.Large)
-                ) {
-                    Column(modifier = Modifier.padding(Dimens.Large)) {
-                        StatItem(
-                            stringResource(R.string.best_time_easy),
-                            formatTime(stats.easyStats.fastestCompletionTimeMillis)
-                        )
-                        StatItem(
-                            stringResource(R.string.best_time_medium),
-                            formatTime(stats.mediumStats.fastestCompletionTimeMillis)
-                        )
-                        StatItem(
-                            stringResource(R.string.best_time_hard),
-                            formatTime(stats.hardStats.fastestCompletionTimeMillis)
-                        )
-                        StatItem(
-                            stringResource(R.string.best_time_expert),
-                            formatTime(stats.expertStats.fastestCompletionTimeMillis)
-                        )
-                    }
-                }
-            }
+            statRecords(stats)
 
             // Difficulty Breakdown Section
-            item {
-                Text(
-                    stringResource(R.string.by_difficulty),
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.padding(bottom = Dimens.Medium)
-                )
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = Dimens.Large)
-                ) {
-                    Column(modifier = Modifier.padding(Dimens.Large)) {
-                        // Use the DifficultyStatsSection Composable for each difficulty
-                        DifficultyStatsSection(
-                            difficulty = Difficulty.EASY,
-                            stats = stats.easyStats
-                        )
-                        Spacer(modifier = Modifier.height(Dimens.Large)) // Increased spacing
+            statDifficulties(stats)
+        }
+    }
+}
 
-                        DifficultyStatsSection(
-                            difficulty = Difficulty.MEDIUM,
-                            stats = stats.mediumStats
-                        )
-                        Spacer(modifier = Modifier.height(Dimens.Large))
-
-                        DifficultyStatsSection(
-                            difficulty = Difficulty.HARD,
-                            stats = stats.hardStats
-                        )
-                        Spacer(modifier = Modifier.height(Dimens.Large))
-
-                        DifficultyStatsSection(
-                            difficulty = Difficulty.EXPERT,
-                            stats = stats.expertStats
-                        )
-                    }
+private fun LazyListScope.statOverAll(
+    stats: SudokuGameStats,
+    decimalFormat: DecimalFormat
+) {
+    item(key = "stat_overall") {
+        Text(
+            stringResource(R.string.overall_stats),
+            style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.padding(bottom = Dimens.Medium)
+        )
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = Dimens.Large)
+        ) {
+            Column(modifier = Modifier.padding(Dimens.Large)) {
+                StatItem(stringResource(R.string.games_played), stats.totalGamesPlayed.toString())
+                StatItem(stringResource(R.string.games_solved), stats.totalGamesWon.toString())
+                // Calculate and display overall win rate
+                val overallWinRate = if (stats.totalGamesPlayed > 0) {
+                    (stats.totalGamesWon.toDouble() / stats.totalGamesPlayed.toDouble()) * PercentAll
+                } else {
+                    0.0
                 }
+                StatItem(
+                    stringResource(R.string.win_rate),
+                    "${decimalFormat.format(overallWinRate)}%"
+                )
             }
         }
     }
+}
 
+private fun LazyListScope.statRecords(stats: SudokuGameStats) {
+    item(key = "stat_records") {
+        Text(
+            text = stringResource(R.string.records),
+            style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.padding(bottom = Dimens.Medium)
+        )
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = Dimens.Large)
+        ) {
+            Column(modifier = Modifier.padding(Dimens.Large)) {
+                StatItem(
+                    stringResource(R.string.best_time_easy),
+                    formatTime(stats.easyStats.fastestCompletionTimeMillis)
+                )
+                StatItem(
+                    stringResource(R.string.best_time_medium),
+                    formatTime(stats.mediumStats.fastestCompletionTimeMillis)
+                )
+                StatItem(
+                    stringResource(R.string.best_time_hard),
+                    formatTime(stats.hardStats.fastestCompletionTimeMillis)
+                )
+                StatItem(
+                    stringResource(R.string.best_time_expert),
+                    formatTime(stats.expertStats.fastestCompletionTimeMillis)
+                )
+            }
+        }
+    }
+}
 
+private fun LazyListScope.statDifficulties(stats: SudokuGameStats) {
+    item("stat_difficulties") {
+        Text(
+            stringResource(R.string.by_difficulty),
+            style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.padding(bottom = Dimens.Medium)
+        )
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = Dimens.Large)
+        ) {
+            Column(modifier = Modifier.padding(Dimens.Large)) {
+                // Use the DifficultyStatsSection Composable for each difficulty
+                DifficultyStatsSection(
+                    difficulty = Difficulty.EASY,
+                    stats = stats.easyStats
+                )
+                Spacer(modifier = Modifier.height(Dimens.Large)) // Increased spacing
+
+                DifficultyStatsSection(
+                    difficulty = Difficulty.MEDIUM,
+                    stats = stats.mediumStats
+                )
+                Spacer(modifier = Modifier.height(Dimens.Large))
+
+                DifficultyStatsSection(
+                    difficulty = Difficulty.HARD,
+                    stats = stats.hardStats
+                )
+                Spacer(modifier = Modifier.height(Dimens.Large))
+
+                DifficultyStatsSection(
+                    difficulty = Difficulty.EXPERT,
+                    stats = stats.expertStats
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatisticConfirmDialog(
+    showConfirmDialog: Boolean,
+    onClearStat: () -> Unit,
+    inDismiss: () -> Unit,
+) {
+    if (showConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = inDismiss,
+            title = { Text(stringResource(R.string.confirm_reset_title)) },
+            text = { Text(stringResource(R.string.confirm_reset_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onClearStat()
+                        inDismiss()
+                    }
+                ) {
+                    Text(stringResource(R.string.reset))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = inDismiss
+                ) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun StatisticTopBar(
+    onNavigateBack: () -> Unit,
+    showConfirmDialog: ()->Unit
+) {
+    TopAppBar(
+        title = { Text(stringResource(R.string.statistic)) },
+        navigationIcon = {
+            IconButton(onClick = onNavigateBack) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.back)
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+        ),
+        actions = {
+            IconButton(onClick = showConfirmDialog) {
+                Icon(
+                    imageVector = Icons.Filled.Delete,
+                    contentDescription = stringResource(R.string.clear_statistics),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+        }
+    )
 }
 
 @Composable

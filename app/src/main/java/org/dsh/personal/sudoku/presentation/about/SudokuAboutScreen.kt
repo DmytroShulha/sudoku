@@ -46,6 +46,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -60,37 +61,33 @@ import java.time.Year
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(
-    onNavigateBack: () -> Unit,
-    onHowToPlayClick: () -> Unit,
-    params: AboutScreenData
+    onNavigateBack: () -> Unit, onHowToPlayClick: () -> Unit, params: AboutScreenData
 ) {
     val uriHandler = LocalUriHandler.current
 
     val versionText = stringResource(R.string.version_name, params.appVersion)
     val developedByText = stringResource(R.string.developed_by, DEVELOPER_NAME)
-    val copyrightText = stringResource(R.string.all_rights_reserved, Year.now().value, DEVELOPER_NAME)
+    val copyrightText =
+        stringResource(R.string.all_rights_reserved, Year.now().value, DEVELOPER_NAME)
     val gameDescription = stringResource(R.string.game_description_short)
     val privacyPolicyUrl = stringResource(R.string.privacy_policy_url)
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.about)) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                title = { Text(stringResource(R.string.about)) }, navigationIcon = {
+                IconButton(onClick = onNavigateBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.back)
+                    )
+                }
+            }, colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
             )
-        }
-    ) { paddingValues ->
+            )
+        }) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -133,6 +130,7 @@ fun AboutScreen(
         }
     }
 }
+
 data class AboutScreenData(
     val appName: String,
     val appVersion: String,
@@ -144,11 +142,13 @@ data class AboutScreenData(
 @Composable
 private fun CopyrightFooterSection(copyrightText: String) {
     InfoItem(
-        icon = Icons.Filled.Copyright,
-        label = stringResource(R.string.copyright),
-        text = copyrightText,
-        textAlign = TextAlign.Start,
-        modifier = Modifier.padding(top = Dimens.Large, bottom = Dimens.Medium)
+        InfoItemData(
+            icon = Icons.Filled.Copyright,
+            label = stringResource(R.string.copyright),
+            text = copyrightText,
+            textAlign = TextAlign.Start,
+            modifier = Modifier.padding(top = Dimens.Large, bottom = Dimens.Medium)
+        )
     )
 }
 
@@ -198,13 +198,11 @@ private fun LinksSection(
 }
 
 private fun linkExecution(
-    uriHandler: UriHandler,
-    link: String,
-    context: Context
+    uriHandler: UriHandler, link: String, context: Context
 ) {
     try {
         uriHandler.openUri(link)
-    } catch (e: Exception) {
+    } catch (e: IllegalArgumentException) {
         Log.e("AboutScreen", "Error opening URI", e)
         Toast.makeText(context, R.string.something_went_wrong, Toast.LENGTH_SHORT).show()
     }
@@ -213,19 +211,23 @@ private fun linkExecution(
 @Composable
 private fun DescriptionSection(gameDescription: String) {
     InfoItem(
-        icon = Icons.Filled.Description,
-        label = stringResource(R.string.description),
-        text = gameDescription,
-        isMultiline = true
+        InfoItemData(
+            icon = Icons.Filled.Description,
+            label = stringResource(R.string.description),
+            text = gameDescription,
+            isMultiline = true
+        )
     )
 }
 
 @Composable
 private fun DeveloperSection(developedByText: String) {
     InfoItem(
-        icon = Icons.Filled.Business,
-        label = stringResource(R.string.developer),
-        text = developedByText
+        InfoItemData(
+            icon = Icons.Filled.Business,
+            label = stringResource(R.string.developer),
+            text = developedByText
+        )
     )
 }
 
@@ -248,48 +250,63 @@ private fun AppHeaderSection(appName: String, versionText: String) {
         modifier = Modifier.padding(bottom = Dimens.Small)
     )
 
-    InfoItem(icon = Icons.Filled.Info, label = stringResource(R.string.version), text = versionText)
+    InfoItem(
+        InfoItemData(
+            icon = Icons.Filled.Info, label = stringResource(R.string.version), text = versionText
+        )
+    )
 }
+
+data class InfoItemData(
+    val icon: ImageVector,
+    val label: String,
+    val text: String,
+    val modifier: Modifier = Modifier,
+    val isMultiline: Boolean = false,
+    val textAlign: TextAlign = TextAlign.Start,
+)
 
 @Composable
 fun InfoItem(
-    icon: ImageVector,
-    label: String,
-    text: String,
-    modifier: Modifier = Modifier,
-    isMultiline: Boolean = false,
-    textAlign: TextAlign = TextAlign.Start,
+    data: InfoItemData,
 ) {
     Row(
-        verticalAlignment = if (isMultiline) Alignment.Top else Alignment.CenterVertically,
-        modifier = modifier
+        verticalAlignment = if (data.isMultiline) Alignment.Top else Alignment.CenterVertically,
+        modifier = data.modifier
             .fillMaxWidth()
             .padding(vertical = Dimens.Medium)
             .padding(end = Dimens.Medium)
     ) {
         Icon(
-            imageVector = icon,
-            contentDescription = label,
+            imageVector = data.icon,
+            contentDescription = data.label,
             modifier = Modifier.size(Dimens.Icon),
             tint = MaterialTheme.colorScheme.secondary
         )
         Spacer(Modifier.width(Dimens.Large))
         Column {
             Text(
-                text = label,
+                text = data.label,
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = text,
-                style = if (isMultiline) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodyLarge,
-                textAlign = textAlign,
+                text = data.text,
+                style = getStyle(data),
+                textAlign = data.textAlign,
                 color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
 }
+
+@Composable
+private fun getStyle(data: InfoItemData): TextStyle =
+    if (data.isMultiline)
+        MaterialTheme.typography.bodyMedium
+    else
+        MaterialTheme.typography.bodyLarge
 
 @Composable
 fun LinkItem(
@@ -309,8 +326,7 @@ fun LinkItem(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .padding(horizontal = Dimens.Large, vertical = Dimens.BigMedium)
+            modifier = Modifier.padding(horizontal = Dimens.Large, vertical = Dimens.BigMedium)
         ) {
             Icon(
                 imageVector = icon,
@@ -343,20 +359,19 @@ fun LinkItem(
 fun AboutScreenPreviewLight() {
     PersonalTheme {
         AboutScreen(
-            onNavigateBack = { },
-            onHowToPlayClick = { },
-            params = AboutScreenData(
-                appName = stringResource(R.string.app_name),
-                appVersion = "1.1.0",
-                playStoreUrl = "",
-                githubRepo = "githubRepo",
-                playStoreGameUrl = "",
-            )
+            onNavigateBack = { }, onHowToPlayClick = { }, params = AboutScreenData(
+            appName = stringResource(R.string.app_name),
+            appVersion = "1.1.0",
+            playStoreUrl = "",
+            githubRepo = "githubRepo",
+            playStoreGameUrl = "",
+        )
         )
     }
 }
 
-@Preview(showBackground = true,
+@Preview(
+    showBackground = true,
     uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
             or android.content.res.Configuration.UI_MODE_TYPE_NORMAL
 )
@@ -364,15 +379,13 @@ fun AboutScreenPreviewLight() {
 fun AboutScreenPreviewDark() {
     PersonalTheme {
         AboutScreen(
-            onNavigateBack = { },
-            onHowToPlayClick = { },
-            params = AboutScreenData(
-                appName = stringResource(R.string.app_name),
-                appVersion = "1.1.0",
-                playStoreUrl = "",
-                githubRepo = "",
-                playStoreGameUrl = "",
-            )
+            onNavigateBack = { }, onHowToPlayClick = { }, params = AboutScreenData(
+            appName = stringResource(R.string.app_name),
+            appVersion = "1.1.0",
+            playStoreUrl = "",
+            githubRepo = "",
+            playStoreGameUrl = "",
+        )
         )
     }
 }

@@ -28,6 +28,7 @@ import org.dsh.personal.sudoku.presentation.SudokuViewModel
 import org.dsh.personal.sudoku.presentation.view.Dimens
 import org.dsh.personal.sudoku.presentation.view.SudokuBoardView
 import org.dsh.personal.sudoku.presentation.view.SudokuNumberInputRow
+import org.dsh.personal.sudoku.presentation.view.SudokuNumberInputRowData
 
 private const val WEIGHT04 = .4f
 private const val WEIGHT06 = .6f
@@ -39,6 +40,7 @@ data class SudokuGameCallbacks(
     val notesClick: () -> Unit,
     val resumeGame: () -> Unit,
 )
+
 @Composable
 fun SudokuGame(
     modifier: Modifier = Modifier,
@@ -69,8 +71,7 @@ private fun PhoneSudokuGame(
                 modifier = Modifier.fillMaxSize()
             ) {
                 IconButton(
-                    onClick = callbacks.resumeGame,
-                    modifier = Modifier.align(Alignment.Center)
+                    onClick = callbacks.resumeGame, modifier = Modifier.align(Alignment.Center)
                 ) {
                     Icon(
                         Icons.Outlined.PlayArrow,
@@ -82,9 +83,7 @@ private fun PhoneSudokuGame(
         } else {
             SudokuBoardView(
                 modifier = Modifier.padding(
-                    top = Dimens.Medium,
-                    start = Dimens.Small,
-                    end = Dimens.Small
+                    top = Dimens.Medium, start = Dimens.Small, end = Dimens.Small
                 ),
                 board = gameState.boardState.grid,
                 selectedCellPosition = gameState.selectedCell,
@@ -94,11 +93,13 @@ private fun PhoneSudokuGame(
             Spacer(Modifier.height(Dimens.Medium))
 
             SudokuNumberInputRow(
-                numbers = gameState.availableNumbers,
-                onNumberClick = callbacks.onNumberClick,
-                undoClick = callbacks.undoClick,
-                notesClick = callbacks.notesClick,
-                currentInputMode = gameState.inputMode,
+                data = SudokuNumberInputRowData(
+                    numbers = gameState.availableNumbers,
+                    onNumberClick = callbacks.onNumberClick,
+                    undoClick = callbacks.undoClick,
+                    notesClick = callbacks.notesClick,
+                    currentInputMode = gameState.inputMode,
+                )
             )
         }
     }
@@ -124,8 +125,7 @@ private fun TabletSudokuGame(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     IconButton(
-                        onClick = callbacks.resumeGame,
-                        modifier = Modifier.align(Alignment.Center)
+                        onClick = callbacks.resumeGame, modifier = Modifier.align(Alignment.Center)
                     ) {
                         Icon(
                             Icons.Outlined.PlayArrow,
@@ -155,11 +155,13 @@ private fun TabletSudokuGame(
         ) {
             if (!sudokuSettings.isPaused) {
                 SudokuNumberInputRow(
-                    numbers = gameState.availableNumbers,
-                    onNumberClick = callbacks.onNumberClick,
-                    undoClick = callbacks.undoClick,
-                    notesClick = callbacks.notesClick,
-                    currentInputMode = gameState.inputMode,
+                    data = SudokuNumberInputRowData(
+                        numbers = gameState.availableNumbers,
+                        onNumberClick = callbacks.onNumberClick,
+                        undoClick = callbacks.undoClick,
+                        notesClick = callbacks.notesClick,
+                        currentInputMode = gameState.inputMode,
+                    )
                 )
                 Spacer(Modifier.height(Dimens.Large))
                 // Add other controls or information here for wider screens

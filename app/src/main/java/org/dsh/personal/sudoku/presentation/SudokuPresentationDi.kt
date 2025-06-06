@@ -7,7 +7,12 @@ import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val sudokuPresentationDi = module {
-    viewModel { SudokuViewModel(get(), get(), get(), get(), get(), get()) }
+    viewModel {
+        SudokuViewModel(
+            themeSettingsManager = get(),
+            sudokuHandler = get(),
+        )
+    }
     viewModel { SuccessViewModel(get(), get()) }
     viewModel { StatisticViewModel(get(), get()) }
     viewModel { AboutViewModel(get()) }

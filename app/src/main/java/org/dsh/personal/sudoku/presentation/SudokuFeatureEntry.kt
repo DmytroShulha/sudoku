@@ -40,6 +40,7 @@ import org.dsh.personal.sudoku.presentation.game.SudokuGameSideEffects
 import org.dsh.personal.sudoku.presentation.main.DifficultySelectionSheet
 import org.dsh.personal.sudoku.presentation.main.GameToolBar
 import org.dsh.personal.sudoku.presentation.main.SudokuMainMenu
+import org.dsh.personal.sudoku.presentation.main.SudokuMainMenuData
 import org.dsh.personal.sudoku.presentation.settings.SudokuSettingsScreen
 import org.dsh.personal.sudoku.presentation.statistic.StatisticViewModel
 import org.dsh.personal.sudoku.presentation.statistic.SudokuAnalyticsScreen
@@ -56,7 +57,7 @@ object SudokuFeatureEntry {
     fun SudokuMainMenuScreen(navController: NavController) {
         val viewModel: SudokuViewModel = koinViewModel()
         val settings by viewModel.sudokuSettings.collectAsStateWithLifecycle()
-        SudokuMainMenu(
+        SudokuMainMenu(data = SudokuMainMenuData(
             hasContinueGame = settings.hasContinueGame,
             onStartGame = { difficulty ->
                 navController.navigate(SudokuRoutes.gameScreenRoute(difficulty.name))
@@ -64,7 +65,8 @@ object SudokuFeatureEntry {
             onResumeGame = { navController.navigate(SudokuRoutes.gameScreenRoute(SudokuRoutes.PARAM_CONTINUE)) },
             onAboutClick = { navController.navigate(SudokuRoutes.ABOUT_SCREEN) },
             onSettingsClick = { navController.navigate(SudokuRoutes.SETTINGS_SCREEN) },
-            onStatisticClick = { navController.navigate(SudokuRoutes.STATISTIC_SCREEN) })
+            onStatisticClick = { navController.navigate(SudokuRoutes.STATISTIC_SCREEN) }
+        ))
     }
 
     @Composable
@@ -77,7 +79,7 @@ object SudokuFeatureEntry {
 
         LaunchedEffect(Unit) {
             if (difficultyString == SudokuRoutes.PARAM_CONTINUE) {
-                viewModel.resumeGame()
+                viewModel.handleIntent(SudokuViewModel.SudokuIntent.ResumeGame)
             } else {
                 val difficulty = difficultyString?.let { Difficulty.valueOf(it) } ?: Difficulty.EASY
                 viewModel.startNewGame(difficulty)
@@ -102,9 +104,9 @@ object SudokuFeatureEntry {
                         showThemeDialog = { showThemeDialog = true },
                         onPauseResumeClick = {
                             if (settings.isPaused) {
-                                viewModel.resumeGameTimer()
+                                viewModel.handleIntent(SudokuViewModel.SudokuIntent.ResumeGameTimer)
                             } else {
-                                viewModel.pauseGameTimer()
+                                viewModel.handleIntent(SudokuViewModel.SudokuIntent.PauseGameTimer)
                             }
                         }
                     )
@@ -120,7 +122,7 @@ object SudokuFeatureEntry {
                         onNumberClick = viewModel::inputNumber2,
                         undoClick = viewModel::undo,
                         notesClick = viewModel::toggleInputMode,
-                        resumeGame = viewModel::resumeGameTimer
+                        resumeGame = { viewModel.handleIntent(SudokuViewModel.SudokuIntent.ResumeGameTimer) }
                     )
                 )
             }

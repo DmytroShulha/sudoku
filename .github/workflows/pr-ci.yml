@@ -52,7 +52,7 @@ jobs:
         id: coverage_extract # Give this step an ID to access its outputs
         run: |
           # Ensure xmllint is available (usually is on ubuntu-latest)
-          # sudo apt-get update && sudo apt-get install -y libxml2-utils
+          sudo apt-get update && sudo apt-get install -y libxml2-utils
 
           JACOCO_XML_PATH="app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml"
 
