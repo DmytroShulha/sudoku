@@ -1,7 +1,7 @@
 package org.dsh.personal.sudoku
 
 import org.dsh.personal.sudoku.core.AppRoutes
-import org.dsh.personal.sudoku.data.sudokuDataDi
+import org.dsh.personal.sudoku.data.di.sudokuDataDi
 import org.dsh.personal.sudoku.domain.sudokuDomainDi
 import org.dsh.personal.sudoku.presentation.sudokuPresentationDi
 import org.koin.dsl.module

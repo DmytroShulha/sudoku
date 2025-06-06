@@ -19,8 +19,8 @@ fun initializeEmptyGame(): SudokuGameState {
                 isClue = value != 0 // If value is not 0, it's a clue
             )
         }
-            .toMutableStateList() // Using toMutableStateList for individual cell observability if needed
-    }.toMutableStateList()
+            .toMutableStateList().toList()
+    }.toMutableStateList().toList()
 
 
     val board = SudokuBoardState(

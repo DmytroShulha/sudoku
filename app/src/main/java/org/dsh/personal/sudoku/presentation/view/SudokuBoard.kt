@@ -5,7 +5,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,6 +18,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,6 +30,7 @@ import org.dsh.personal.sudoku.domain.BLOCK_SIZE
 import org.dsh.personal.sudoku.domain.ROW_SIZE
 import org.dsh.personal.sudoku.domain.entity.SudokuCellNote
 import org.dsh.personal.sudoku.domain.entity.SudokuCellState
+import org.dsh.personal.sudoku.domain.entity.SudokuEffects
 import org.dsh.personal.sudoku.presentation.SudokuViewModel
 import org.dsh.personal.sudoku.theme.PersonalTheme
 
@@ -38,10 +43,7 @@ fun SudokuBoardView(
     modifier: Modifier = Modifier,
     settings: SudokuViewModel.SudokuSettings
 ) {
-    val boardSize = ROW_SIZE
-    val subgridSize = BLOCK_SIZE
     val thickLineDp = 2.dp
-    val thinLineDp = 1.dp
     val lineColor = MaterialTheme.colorScheme.tertiary
 
     val effects = remember(settings.effects) { settings.effects }
@@ -52,46 +54,104 @@ fun SudokuBoardView(
             .border(thickLineDp, lineColor) // Outer border for the entire 9x9 grid
     ) {
         Column(Modifier.fillMaxSize()) {
-            (0 until boardSize).forEach { rowIndex ->
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .weight(1f) // Each row takes equal height
-                ) {
-                    (0 until boardSize).forEach { colIndex ->
-                        val cellState = board[rowIndex][colIndex]
-                        Box(
-                            modifier = Modifier
-                                .weight(1f) // Each cell Box takes equal width in a Row
-                                .aspectRatio(1f) // Ensure cell Box is square before SudokuCellView fills it
-                        ) {
-                            SudokuCellView(
-                                cell = cellState,
-                                isSelected = selectedCellPosition?.first == rowIndex &&
-                                        selectedCellPosition.second == colIndex,
-                                onClick = { onCellClick(rowIndex, colIndex) },
-                                effects = effects,
-                            )
-                        }
+            SudokuBoardRow(
+                board,
+                selectedCellPosition,
+                onCellClick,
+                effects,
+            )
+        }
+    }
+}
 
-                        // Vertical Divider (except for the last cell in a row)
-                        if (colIndex < boardSize - 1) {
-                            VerticalDivider(
-                                thickness = if ((colIndex + 1) % subgridSize == 0) thickLineDp else thinLineDp,
-                                color = lineColor
-                            )
-                        }
-                    }
-                }
-                // Horizontal Divider (except for the last row)
-                if (rowIndex < boardSize - 1) {
-                    HorizontalDivider(
-                        thickness = if ((rowIndex + 1) % subgridSize == 0) thickLineDp else thinLineDp,
-                        color = lineColor
+@Composable
+private fun ColumnScope.SudokuBoardRow(
+    board: List<List<SudokuCellState>>,
+    selectedCellPosition: Pair<Int, Int>?,
+    onCellClick: (Int, Int) -> Unit,
+    effects: SudokuEffects,
+) {
+    val boardSize = ROW_SIZE
+    val subgridSize = BLOCK_SIZE
+    val thickLineDp = 2.dp
+    val thinLineDp = 1.dp
+    val lineColor = MaterialTheme.colorScheme.tertiary
+
+    for (rowIndex in 0 until boardSize) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .weight(1f) // Each row takes equal height
+        ) {
+            for (colIndex in 0 until boardSize) {
+                val cellState = board[rowIndex][colIndex]
+                BoardRowCellItem(
+                    data = BoardRowCellItemData(
+                        cellState = cellState,
+                        selectedCellPosition = selectedCellPosition,
+                        rowIndex = rowIndex,
+                        colIndex = colIndex,
+                        onCellClick = onCellClick,
+                        effects = effects,
                     )
-                }
+                )
             }
         }
+        // Horizontal Divider (except for the last row)
+        if (rowIndex < boardSize - 1) {
+            HorizontalDivider(
+                thickness = if ((rowIndex + 1) % subgridSize == 0) thickLineDp else thinLineDp,
+                color = lineColor
+            )
+        }
+    }
+}
+
+data class BoardRowCellItemData(
+    val cellState: SudokuCellState,
+    val selectedCellPosition: Pair<Int, Int>?,
+    val rowIndex: Int,
+    val colIndex: Int,
+    val onCellClick: (Int, Int) -> Unit,
+    val effects: SudokuEffects,
+)
+
+@Composable
+private fun RowScope.BoardRowCellItem(
+    data: BoardRowCellItemData,
+) {
+    val boardSize = ROW_SIZE
+    val subgridSize = BLOCK_SIZE
+    val thickLineDp = 2.dp
+    val thinLineDp = 1.dp
+    val lineColor = MaterialTheme.colorScheme.tertiary
+
+    val isSelected by remember {
+        derivedStateOf {
+            data.selectedCellPosition?.first == data.rowIndex &&
+                    data.selectedCellPosition.second == data.colIndex
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .weight(1f) // Each cell Box takes equal width in a Row
+            .aspectRatio(1f) // Ensure cell Box is square before SudokuCellView fills it
+    ) {
+        SudokuCellView(
+            cell = data.cellState,
+            isSelected = isSelected,
+            onClick = { data.onCellClick(data.rowIndex, data.colIndex) },
+            effects = data.effects,
+        )
+    }
+
+    // Vertical Divider (except for the last cell in a row)
+    if (data.colIndex < boardSize - 1) {
+        VerticalDivider(
+            thickness = if ((data.colIndex + 1) % subgridSize == 0) thickLineDp else thinLineDp,
+            color = lineColor
+        )
     }
 }
 
@@ -124,7 +184,8 @@ fun HorizontalDivider(
 }
 
 // Preview for SudokuBoardView
-@Preview(showBackground = true, widthDp = 360, heightDp = 420,
+@Preview(
+    showBackground = true, widthDp = 360, heightDp = 420,
     uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
             or android.content.res.Configuration.UI_MODE_TYPE_NORMAL
 )

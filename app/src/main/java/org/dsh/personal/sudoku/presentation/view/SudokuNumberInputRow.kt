@@ -1,6 +1,7 @@
 package org.dsh.personal.sudoku.presentation.view
 
 import android.content.res.Configuration
+import androidx.annotation.StringRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.tween
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.automirrored.outlined.Undo
 import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -38,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -53,14 +56,18 @@ import kotlin.collections.List
 private const val ANIMATION_DURATION_200 = 200
 private const val ANIMATION_DURATION_300 = 300
 
+data class SudokuNumberInputRowData(
+    val numbers: List<SudokuNumberButtonState>,
+    val onNumberClick: (Int) -> Unit,
+    val undoClick: () -> Unit,
+    val notesClick: () -> Unit,
+    val currentInputMode: InputMode,
+)
+
 @Composable
 fun SudokuNumberInputRow(
     modifier: Modifier = Modifier,
-    numbers: List<SudokuNumberButtonState>,
-    onNumberClick: (Int) -> Unit,
-    undoClick: () -> Unit,
-    notesClick: () -> Unit,
-    currentInputMode: InputMode,
+    data: SudokuNumberInputRowData
 ) {
 
     Column(
@@ -68,58 +75,13 @@ fun SudokuNumberInputRow(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
 
-        Row(
-            modifier = modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-
-            Button(
-                onClick = { notesClick() },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (currentInputMode == InputMode.NOTES) {
-                        MaterialTheme.colorScheme.primaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.primary
-                    }
-                )
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.EditNote,
-                        contentDescription = stringResource(R.string.notes_content_desc)
-                    )
-                    Spacer(Modifier.width(4.dp))
-                    Text(stringResource(R.string.notes))
-                }
-            }
-
-            Button(
-                onClick = { undoClick() }
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Outlined.Undo,
-                        contentDescription = stringResource(R.string.undo)
-                    )
-                    Spacer(Modifier.width(4.dp))
-                    Text(stringResource(R.string.undo))
-                }
-            }
-
-            Button(onClick = { onNumberClick(0) }) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Outlined.Clear,
-                        contentDescription = stringResource(R.string.clear_content_desc)
-                    )
-                    Spacer(Modifier.width(4.dp))
-                    Text(stringResource(R.string.clear))
-                }
-            }
-
-
-        }
+        SudokuGameButtonsRow(
+            modifier,
+            data.currentInputMode,
+            data.notesClick,
+            data.undoClick,
+            data.onNumberClick
+        )
 
         Spacer(Modifier.height(8.dp))
 
@@ -128,12 +90,91 @@ fun SudokuNumberInputRow(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            numbers.forEach { numberState ->
+            data.numbers.forEach { numberState ->
                 NumberInputButton(
                     numberState = numberState,
-                    onNumberClick = onNumberClick
+                    onNumberClick = data.onNumberClick
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun SudokuGameButtonsRow(
+    modifier: Modifier,
+    currentInputMode: InputMode,
+    notesClick: () -> Unit,
+    undoClick: () -> Unit,
+    onNumberClick: (Int) -> Unit
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        SudokuFunctionalButton(
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (currentInputMode == InputMode.NOTES) {
+                    MaterialTheme.colorScheme.primaryContainer
+                } else {
+                    MaterialTheme.colorScheme.primary
+                }
+            ), buttonClick = notesClick, data = SudokuFunctionalButtonData(
+                icon = Icons.Default.EditNote,
+                contentDescription = R.string.notes_content_desc,
+                text = R.string.notes
+            )
+        )
+
+        SudokuFunctionalButton(
+            data = SudokuFunctionalButtonData(
+                icon = Icons.AutoMirrored.Outlined.Undo,
+                contentDescription = R.string.undo,
+                text = R.string.undo
+            ),
+            buttonClick = undoClick,
+
+            )
+
+        SudokuFunctionalButton(
+            data = SudokuFunctionalButtonData(
+                icon = Icons.Outlined.Clear,
+                contentDescription = R.string.clear_content_desc,
+                text = R.string.clear
+            ),
+            buttonClick = { onNumberClick(0) },
+
+            )
+    }
+}
+
+data class SudokuFunctionalButtonData(
+    val icon: ImageVector,
+    @StringRes
+    val contentDescription: Int,
+    @StringRes
+    val text: Int,
+)
+
+@Composable
+private fun SudokuFunctionalButton(
+    data: SudokuFunctionalButtonData,
+    colors: ButtonColors = ButtonDefaults.buttonColors(),
+    buttonClick: () -> Unit,
+) {
+    Button(
+        onClick = buttonClick,
+        colors = colors
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = data.icon,
+                contentDescription = stringResource(data.contentDescription)
+            )
+            Spacer(Modifier.width(4.dp))
+            Text(stringResource(data.text))
         }
     }
 }
@@ -230,11 +271,13 @@ fun PreviewNumberInputRow() {
         )
         Surface {
             SudokuNumberInputRow(
-                numbers = sampleNumbers,
-                onNumberClick = {},
-                undoClick = {},
-                notesClick = {},
-                currentInputMode = InputMode.VALUE
+                data = SudokuNumberInputRowData(
+                    numbers = sampleNumbers,
+                    onNumberClick = {},
+                    undoClick = {},
+                    notesClick = {},
+                    currentInputMode = InputMode.VALUE
+                )
             )
         }
     }

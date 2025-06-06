@@ -34,23 +34,6 @@ class SudokuGeneratorEasy : SudokuGenerator {
         solution to createPuzzleFromSolution(solution, difficulty)
     }
 
-    @Suppress("unused")
-    fun printGrid(grid: Array<IntArray>) {
-        println("+-------+-------+-------+")
-        for (i in grid.indices) {
-            print("| ")
-            for (j in grid[i].indices) {
-                print(if (grid[i][j] == 0) ". " else "${grid[i][j]} ")
-                if ((j + 1) % SUB_GRID_SIZE == 0) print("| ")
-            }
-            println()
-            if ((i + 1) % SUB_GRID_SIZE == 0) {
-                println("+-------+-------+-------+")
-            }
-        }
-        println()
-    }
-
     /**
      * Generates a fully solved Sudoku grid.
      */

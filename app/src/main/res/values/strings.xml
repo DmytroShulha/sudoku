@@ -69,7 +69,7 @@
     <string name="main_menu">Main Menu</string>
     <string name="share_achievement">Share Achievement</string>
     <string name="play">Play</string>
-    <string name="mail_to">mailto:%1$s?subject=Feedback%20for%20%2$s%20v%3$s</string>
+    <string name="mail_to" translatable="false">mailto:%1$s?subject=Feedback%20for%20%2$s%20v%3$s</string>
     <string name="level_is">Level: %1$s</string>
     <string name="pause_game">Pause game</string>
     <string name="change_theme">Change theme</string>
