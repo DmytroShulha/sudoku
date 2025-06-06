@@ -41,9 +41,6 @@ data class ProcessNoteData(
     ) -> Unit
 )
 
-
-
-
 suspend fun updateNotes(
     data: ProcessNoteData
 ): SudokuGameState {
@@ -138,13 +135,7 @@ private fun highlightSpecifiedNumber(
     if (number != 0) {
         for (r in gridAfterHighlighting.indices) {
             for (c in gridAfterHighlighting[r].indices) {
-                if (gridAfterHighlighting[r][c].value == number) {
-                    gridAfterHighlighting[r][c].isHighlighted = true
-                } else if (gridAfterHighlighting[r][c].value == 0) {
-                    gridAfterHighlighting[r][c].notes =
-                        gridAfterHighlighting[r][c].notes.map { it.copy(isHighlighted = it.value == number) }
-                            .toSet()
-                }
+                highlightNumberInCell(gridAfterHighlighting, r, c, number)
             }
         }
     } else {
@@ -155,6 +146,21 @@ private fun highlightSpecifiedNumber(
                     gridAfterHighlighting[r][c].notes.map { it.copy(isHighlighted = false) }.toSet()
             }
         }
+    }
+}
+
+private fun highlightNumberInCell(
+    gridAfterHighlighting: SnapshotStateList<SnapshotStateList<SudokuCellState>>,
+    r: Int,
+    c: Int,
+    number: Int
+) {
+    if (gridAfterHighlighting[r][c].value == number) {
+        gridAfterHighlighting[r][c].isHighlighted = true
+    } else if (gridAfterHighlighting[r][c].value == 0) {
+        gridAfterHighlighting[r][c].notes =
+            gridAfterHighlighting[r][c].notes.map { it.copy(isHighlighted = it.value == number) }
+                .toSet()
     }
 }
 

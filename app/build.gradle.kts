@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.tasks.JacocoTask
+import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.exclude
 import java.util.Base64
 import java.io.File
 import java.io.FileInputStream
@@ -79,7 +81,7 @@ android {
 
 
     buildTypes {
-        getByName("debug") {
+        debug {
             enableUnitTestCoverage = true
         }
         release {
@@ -103,7 +105,13 @@ android {
         compose = true
         buildConfig = true
     }
+    testOptions {
+        unitTests.all {
+            testCoverage {
 
+            }
+        }
+    }
 }
 
 tasks.register("jacocoTestReport", JacocoReport::class) {
@@ -128,17 +136,13 @@ tasks.register("jacocoTestReport", JacocoReport::class) {
         exclude(fileFilter)
      }
     classDirectories.setFrom(files(kotlinClasses, javaClasses , kspClasses))
-    println("classDirectories.files")
-    println(classDirectories.files)
     sourceDirectories.setFrom(files(mainSrc))
-    classDirectories.setFrom(files(classDirectories.files.map {
-        fileTree(it).apply {
-            setExcludes(fileFilter)
-        }
-    }))
+
     executionData.setFrom(
         fileTree(project.layout.buildDirectory) {
-            include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec", "jacoco/testDebugUnitTest.exec")
+            // Common locations for JaCoCo .exec files
+            include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec") // AGP default
+            include("jacoco/testDebugUnitTest.exec") // Gradle default
         }
     )
 }
@@ -150,7 +154,7 @@ val fileFilter = listOf(
     "**/Manifest*.*",
     "**/*Test*.*",
     "android/**/*.*",
-    // Add any other files/directories you want to exclude
+
     "**/*\$Lambda$*.*", // Ignore Kotlin lambdas
     "**/*\$inlined$*.*", // Ignore Kotlin inlined functions
     "**/di/**",
