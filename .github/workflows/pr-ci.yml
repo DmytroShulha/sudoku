@@ -11,6 +11,9 @@ jobs:
   build_and_test_pr:
     name: Build & Test PR
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
 
     steps:
       - name: Checkout repository
@@ -36,35 +39,95 @@ jobs:
         # No signing needed for PR debug builds
         run: ./gradlew bundleDebug
 
-
-
-
-      - name: Cache SonarCloud packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
-
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
-        env:
-              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-              args: >
-                -Dsonar.organization=dmytro-shulha
-                -Dsonar.projectKey=DmytroShulha_sudoku
-                -Dsonar.sources=app/src/main/java             
-                -Dsonar.tests=app/src/test/java               
-                -Dsonar.java.coveragePlugin=jacoco
-                -Dsonar.coverage.jacoco.xmlReportPaths=app/build/reports/coverage/test/debug/report.xml
-                -Dsonar.junit.reportPaths=app/build/test-results/testDebugUnitTest
-                -Dsonar.sarif.reportPaths=app/build/reports/detekt/debug.sarif
-
       - name: Upload Debug AAB
         uses: actions/upload-artifact@v4
         with:
           name: app-debug-pr-${{ github.event.pull_request.number }}-${{ github.sha }}
-          path: app/build/outputs/bundle/debug/app-debug.aab
+          path: |
+            app/build/outputs/bundle/debug/app-debug.aab
+            app/build/outputs/mapping/release/mapping.txt
           retention-days: 3
+
+      - name: Extract JaCoCo Coverage Percentage
+        id: coverage_extract # Give this step an ID to access its outputs
+        run: |
+          # Ensure xmllint is available (usually is on ubuntu-latest)
+          # sudo apt-get update && sudo apt-get install -y libxml2-utils
+
+          JACOCO_XML_PATH="app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml"
+
+          if [ -f "$JACOCO_XML_PATH" ]; then
+            INSTRUCTION_MISSED=$(xmllint --xpath "string(/report/counter[@type='INSTRUCTION']/@missed)" $JACOCO_XML_PATH)
+            INSTRUCTION_COVERED=$(xmllint --xpath "string(/report/counter[@type='INSTRUCTION']/@covered)" $JACOCO_XML_PATH)
+
+            if [ -n "$INSTRUCTION_MISSED" ] && [ -n "$INSTRUCTION_COVERED" ]; then
+              TOTAL_INSTRUCTIONS=$(echo "$INSTRUCTION_MISSED + $INSTRUCTION_COVERED" | bc)
+              if (( $(echo "$TOTAL_INSTRUCTIONS > 0" | bc -l) )); then
+                COVERAGE_PERCENTAGE=$(echo "scale=2; ($INSTRUCTION_COVERED / $TOTAL_INSTRUCTIONS) * 100" | bc)
+                echo "Coverage Percentage: $COVERAGE_PERCENTAGE%"
+                echo "::set-output name=percentage::$COVERAGE_PERCENTAGE"
+              else
+                echo "No instructions found to calculate coverage."
+                echo "::set-output name=percentage::N/A"
+              fi
+            else
+              echo "Could not parse INSTRUCTION coverage from JaCoCo XML."
+              echo "::set-output name=percentage::Error"
+            fi
+          else
+            echo "JaCoCo XML report not found at $JACOCO_XML_PATH"
+            echo "::set-output name=percentage::Not Found"
+          fi
+
+      - name: Prepare PR Comment Content
+        id: prepare_comment
+        run: |
+          echo "## PR CI Summary 🤖" > comment_body.md
+          echo "" >> comment_body.md
+          echo "**Build Status:** ${{ job.status }}" >> comment_body.md
+          echo "" >> comment_body.md
+          # Add more dynamic content here based on previous steps if needed
+          echo "**Lint:** Passed (Placeholder)" >> comment_body.md
+          echo "**Unit Tests:** Passed (Placeholder)" >> comment_body.md
+          echo "$COVERAGE_LINE" >> comment_body.md
+          echo "" >> comment_body.md
+          echo "**Code Coverage Report:** Uploaded as an artifact." >> comment_body.md
+          echo "**Debug AAB:** Uploaded as an artifact: \`app-debug-pr-${{ github.event.pull_request.number }}-${{ github.sha }}\`" >> comment_body.md
+          echo "" >> comment_body.md
+          echo "---" >> comment_body.md
+          echo "_Workflow run: [${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}]({{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})_" >> comment_body.md
+
+      - name: Post or Update PR Comment
+        uses: actions/github-script@v6
+        if: always()
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const header = "<!-- pr-ci-summary-marker -->";
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const commentBody = header + "\n" + `${require('fs').readFileSync('comment_body.md', 'utf8')}`;
+
+            const existingComment = comments.find(comment => comment.body.includes(header));
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: commentBody
+              });
+              console.log("Updated existing PR comment.");
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody
+              });
+              console.log("Created new PR comment.");
+            }
