@@ -27,6 +27,7 @@ android {
                 val keystoreFile = File(project.layout.buildDirectory.toString(), "tmp/release.jks")
                 keystoreFile.parentFile.mkdirs()
                 keystoreFile.delete()
+                keystoreFile.createNewFile()
 
                 val decodedKeystoreBytes = Base64.getDecoder().decode(keystoreBase64)
                 keystoreFile.writeBytes(decodedKeystoreBytes)
