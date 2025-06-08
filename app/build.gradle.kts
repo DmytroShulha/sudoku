@@ -11,6 +11,7 @@ plugins {
     alias(libs.plugins.androidx.room)
     alias(libs.plugins.ksp)
     alias(libs.plugins.detekt)
+    jacoco
 }
 
 android {
@@ -23,7 +24,7 @@ android {
 
             if (keystoreBase64 != null && keystorePassword != null && keyAliasName != null && keyPasswordValue != null) {
                 // Define the path for the decoded keystore file in the build directory
-                val keystoreFile = File(project.buildDir, "tmp/release.jks")
+                val keystoreFile = File(project.layout.buildDirectory.toString(), "tmp/release.jks")
                 keystoreFile.parentFile.mkdirs()
                 keystoreFile.delete()
 
@@ -62,12 +63,12 @@ android {
         }
     }
     namespace = "org.dsh.personal.sudoku"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "org.dsh.personal.sudoku"
         minSdk = 28
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "0.9.1"
 
@@ -78,6 +79,9 @@ android {
 
 
     buildTypes {
+        debug {
+            enableUnitTestCoverage = true
+        }
         release {
             signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
@@ -99,7 +103,71 @@ android {
         compose = true
         buildConfig = true
     }
+    testOptions {
+        unitTests.all {
+            testCoverage {
+
+            }
+        }
+    }
 }
+
+tasks.register("jacocoTestReport", JacocoReport::class) {
+    dependsOn("testDebugUnitTest", "createDebugUnitTestCoverageReport")
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+        csv.required.set(true)
+    }
+
+    val mainSrc = "${projectDir}/src/main/java"
+
+    val kotlinClasses = fileTree("${project.layout.buildDirectory}/tmp/kotlin-classes/debug") {
+        exclude(fileFilter)
+    }
+    // For Java classes (if you have them mixed or use Java extensively)
+    val javaClasses = fileTree("${project.layout.buildDirectory}/intermediates/javac/debug/classes") {
+        exclude(fileFilter)
+    }
+     val kspClasses = fileTree("${project.layout.buildDirectory}/generated/ksp/debug/kotlin") {
+        exclude(fileFilter)
+     }
+    classDirectories.setFrom(files(kotlinClasses, javaClasses , kspClasses))
+    sourceDirectories.setFrom(files(mainSrc))
+
+    executionData.setFrom(
+        fileTree(project.layout.buildDirectory) {
+            // Common locations for JaCoCo .exec files
+            include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec") // AGP default
+            include("jacoco/testDebugUnitTest.exec") // Gradle default
+        }
+    )
+}
+
+val fileFilter = listOf(
+    "**/R.class",
+    "**/R$*.class",
+    "**/BuildConfig.*",
+    "**/Manifest*.*",
+    "**/*Test*.*",
+    "android/**/*.*",
+
+    "**/*\$Lambda$*.*", // Ignore Kotlin lambdas
+    "**/*\$inlined$*.*", // Ignore Kotlin inlined functions
+    "**/di/**",
+    "**/database/**",
+
+    "**/*ComposableSingletons*",
+    // Module specific exclusions
+    "org/dsh/personal/sudoku/data/di/**",
+    "org/dsh/personal/sudoku/theme/**",
+    "org/dsh/personal/sudoku/presentation/**",
+    "org/dsh/personal/sudoku/PersonalApplication*",
+    "org/dsh/personal/sudoku/ui/**", // Assuming UI specific, non-business logic
+    "org/dsh/personal/sudoku/navigation/**",
+)
+
 
 room {
     schemaDirectory("$projectDir/schemas")
@@ -114,7 +182,7 @@ detekt {
 
 tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
     setSource(files(project.projectDir)) // Or more specific source sets
-    classpath.setFrom(files(project.buildDir.toString() + "/tmp/kotlin-classes/debug"))
+    classpath.setFrom(files(project.layout.buildDirectory.toString() + "/tmp/kotlin-classes/debug"))
     reports {
         html.required.set(true)
         xml.required.set(true)
@@ -144,7 +212,11 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+
     testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
+
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

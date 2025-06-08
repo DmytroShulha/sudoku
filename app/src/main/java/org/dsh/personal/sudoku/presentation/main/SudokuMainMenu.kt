@@ -27,6 +27,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -51,23 +52,24 @@ import org.dsh.personal.sudoku.presentation.view.Dimens
 private const val WeightSmall = .2f
 private const val WeightMedium = .5f
 
+data class SudokuMainMenuData(
+    val onStartGame: (difficulty: Difficulty) -> Unit,
+    val onAboutClick: () -> Unit,
+    val onSettingsClick: () -> Unit,
+    val onStatisticClick: () -> Unit,
+    val hasContinueGame: Boolean,
+    val onResumeGame: () -> Unit,
+)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SudokuMainMenu(
-    onStartGame: (difficulty: Difficulty) -> Unit,
-    onAboutClick: () -> Unit,
-    onSettingsClick: () -> Unit,
-    onStatisticClick: () -> Unit,
-    hasContinueGame: Boolean,
-    onResumeGame: () -> Unit,
+    data: SudokuMainMenuData,
     modifier: Modifier = Modifier
 ) {
-
     var showNewGame by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
     )
-    val scope = rememberCoroutineScope()
     Surface {
         Column(
             modifier = modifier
@@ -86,77 +88,110 @@ fun SudokuMainMenu(
             )
             Spacer(Modifier.weight(WeightSmall))
 
-            if (hasContinueGame) {
-                MenuButton(
-                    text = stringResource(R.string.resume_game),
-                    icon = Icons.Filled.PlayArrow,
-                    onClick = onResumeGame,
-                    contentDescription = stringResource(R.string.resume_game_context_desc)
-                )
-                Spacer(modifier = Modifier.height(Dimens.Large))
-            }
-
-            MenuButton(
-                text = stringResource(R.string.new_game),
-                icon = Icons.Filled.AddCircleOutline,
-                onClick = { showNewGame = true },
-                contentDescription = stringResource(R.string.new_game_context_desc)
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            MenuButton(
-                text = stringResource(R.string.settings),
-                icon = Icons.Filled.Settings,
-                onClick = onSettingsClick,
-                contentDescription = stringResource(R.string.settings_content_desc)
-            )
-            Spacer(modifier = Modifier.height(Dimens.Large))
-
-            MenuButton(
-                text = stringResource(R.string.statistics),
-                icon = Icons.Filled.BarChart,
-                onClick = onStatisticClick,
-                contentDescription = stringResource(R.string.statistics_content_desc)
-            )
-            Spacer(modifier = Modifier.height(Dimens.Large))
-
-            MenuButton(
-                text = stringResource(R.string.about),
-                icon = Icons.Filled.Info,
-                onClick = onAboutClick,
-                contentDescription = stringResource(R.string.about_content_desc)
-            )
-            Spacer(Modifier.weight(WeightSmall))
+            SudokuMainMenuItems(data) { showNewGame = true }
         }
 
         if (showNewGame) {
-            ModalBottomSheet(
-                sheetState = sheetState, onDismissRequest = { showNewGame = false }) {
-                DifficultySelectionSheet(
-                    difficulties = Difficulty.entries,
-                    onDifficultySelected = { selectedDifficulty ->
-                        scope.launch {
-                            sheetState.hide()
-                        }.invokeOnCompletion {
-                            if (!sheetState.isVisible) {
-                                showNewGame = false
-                                onStartGame(selectedDifficulty)
-                            }
-                        }
-                    },
-                    onDismiss = {
-                        scope.launch {
-                            sheetState.hide()
-                        }.invokeOnCompletion {
-                            if (!sheetState.isVisible) {
-                                showNewGame = false
-                            }
-                        }
-                    })
-            }
+            ShowNewGame(
+                sheetState = sheetState,
+                data = data,
+                onDismissBottom = { showNewGame = false })
         }
 
     }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun ShowNewGame(
+    sheetState: SheetState,
+    data: SudokuMainMenuData,
+    onDismissBottom: ()->Unit,
+) {
+    val scope = rememberCoroutineScope()
+
+    @Composable
+    @OptIn(ExperimentalMaterial3Api::class)
+    fun onDifficultySelected(): (Difficulty) -> Unit = { selectedDifficulty ->
+        scope.launch {
+            sheetState.hide()
+        }.invokeOnCompletion {
+            if (!sheetState.isVisible) {
+                onDismissBottom()
+                data.onStartGame(selectedDifficulty)
+            }
+        }
+    }
+
+    @Composable
+    @OptIn(ExperimentalMaterial3Api::class)
+    fun onDismiss(): () -> Unit = {
+        scope.launch {
+            sheetState.hide()
+        }.invokeOnCompletion {
+            if (!sheetState.isVisible) {
+                onDismissBottom()
+            }
+        }
+    }
+
+    ModalBottomSheet(
+        sheetState = sheetState, onDismissRequest = onDismissBottom) {
+        DifficultySelectionSheet(
+            difficulties = Difficulty.entries,
+            onDifficultySelected = onDifficultySelected(),
+            onDismiss = onDismiss()
+        )
+    }
+}
+
+@Composable
+private fun SudokuMainMenuItems(
+    data: SudokuMainMenuData,
+    onNewGame: () -> Unit,
+) {
+    if (data.hasContinueGame) {
+        MenuButton(
+            text = stringResource(R.string.resume_game),
+            icon = Icons.Filled.PlayArrow,
+            onClick = data.onResumeGame,
+            contentDescription = stringResource(R.string.resume_game_context_desc)
+        )
+        Spacer(modifier = Modifier.height(Dimens.Large))
+    }
+
+    MenuButton(
+        text = stringResource(R.string.new_game),
+        icon = Icons.Filled.AddCircleOutline,
+        onClick = onNewGame,
+        contentDescription = stringResource(R.string.new_game_context_desc)
+    )
+    Spacer(modifier = Modifier.height(16.dp))
+
+    MenuButton(
+        text = stringResource(R.string.settings),
+        icon = Icons.Filled.Settings,
+        onClick = data.onSettingsClick,
+        contentDescription = stringResource(R.string.settings_content_desc)
+    )
+    Spacer(modifier = Modifier.height(Dimens.Large))
+
+    MenuButton(
+        text = stringResource(R.string.statistics),
+        icon = Icons.Filled.BarChart,
+        onClick = data.onStatisticClick,
+        contentDescription = stringResource(R.string.statistics_content_desc)
+    )
+    Spacer(modifier = Modifier.height(Dimens.Large))
+
+    MenuButton(
+        text = stringResource(R.string.about),
+        icon = Icons.Filled.Info,
+        onClick = data.onAboutClick,
+        contentDescription = stringResource(R.string.about_content_desc)
+    )
+
+    Spacer(modifier = Modifier.height(Dimens.Large))
 }
 
 @Composable

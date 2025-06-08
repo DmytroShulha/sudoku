@@ -33,7 +33,7 @@ fun SudokuGameSideEffects(
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_PAUSE -> {
-                    viewModel.pauseGameTimer()
+                    viewModel.handleIntent(SudokuViewModel.SudokuIntent.PauseGameTimer)
                 }
 
                 else -> { /*Do nothing */

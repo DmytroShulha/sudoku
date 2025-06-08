@@ -38,7 +38,7 @@
                 android:pathData="M22,74 H31 V80 H30 V79 H30 V81 H30 V81 H31 V86 H22 V84 H29 V81 H22 V79 H29 V76 H22 V74 Z" />
 
             <path
-                android:fillColor="@color/colorSurface"
+                android:fillColor="@color/colorSecondary"
                 android:pathData="M76,47 H85 V49 L79,61 H77 L83,49 H76 V47 Z" />
         </group>
     </group>

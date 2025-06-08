@@ -221,7 +221,7 @@ private fun LazyListScope.itemTheme(params: ItemTheme) {
 }
 
 @Composable
-private fun SettingSwitcher(
+fun SettingSwitcher(
     @StringRes title: Int,
     checked: Boolean,
     enabled: Boolean = true,
