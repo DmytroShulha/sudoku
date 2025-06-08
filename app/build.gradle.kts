@@ -1,5 +1,3 @@
-import com.android.build.gradle.internal.tasks.JacocoTask
-import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.exclude
 import java.util.Base64
 import java.io.File
 import java.io.FileInputStream
@@ -70,7 +68,7 @@ android {
     defaultConfig {
         applicationId = "org.dsh.personal.sudoku"
         minSdk = 28
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "0.9.1"
 
