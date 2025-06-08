@@ -88,7 +88,7 @@ fun SudokuMainMenu(
             )
             Spacer(Modifier.weight(WeightSmall))
 
-            SudokuMainMenuItems(data, { showNewGame = true })
+            SudokuMainMenuItems(data) { showNewGame = true }
         }
 
         if (showNewGame) {
@@ -190,6 +190,8 @@ private fun SudokuMainMenuItems(
         onClick = data.onAboutClick,
         contentDescription = stringResource(R.string.about_content_desc)
     )
+
+    Spacer(modifier = Modifier.height(Dimens.Large))
 }
 
 @Composable

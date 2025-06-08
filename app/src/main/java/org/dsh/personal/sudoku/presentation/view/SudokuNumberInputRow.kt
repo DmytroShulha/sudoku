@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Undo
 import androidx.compose.material.icons.filled.EditNote
+import androidx.compose.material.icons.filled.ModeEdit
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
@@ -66,8 +67,7 @@ data class SudokuNumberInputRowData(
 
 @Composable
 fun SudokuNumberInputRow(
-    modifier: Modifier = Modifier,
-    data: SudokuNumberInputRowData
+    modifier: Modifier = Modifier, data: SudokuNumberInputRowData
 ) {
 
     Column(
@@ -77,10 +77,10 @@ fun SudokuNumberInputRow(
 
         SudokuGameButtonsRow(
             modifier,
-            data.currentInputMode,
-            data.notesClick,
-            data.undoClick,
-            data.onNumberClick
+            currentInputMode = data.currentInputMode,
+            notesClick = data.notesClick,
+            undoClick = data.undoClick,
+            onNumberClick = data.onNumberClick
         )
 
         Spacer(Modifier.height(8.dp))
@@ -92,8 +92,7 @@ fun SudokuNumberInputRow(
         ) {
             data.numbers.forEach { numberState ->
                 NumberInputButton(
-                    numberState = numberState,
-                    onNumberClick = data.onNumberClick
+                    numberState = numberState, onNumberClick = data.onNumberClick
                 )
             }
         }
@@ -115,14 +114,10 @@ private fun SudokuGameButtonsRow(
     ) {
 
         SudokuFunctionalButton(
-            colors = ButtonDefaults.buttonColors(
-                containerColor = if (currentInputMode == InputMode.NOTES) {
-                    MaterialTheme.colorScheme.primaryContainer
-                } else {
-                    MaterialTheme.colorScheme.primary
-                }
-            ), buttonClick = notesClick, data = SudokuFunctionalButtonData(
-                icon = Icons.Default.EditNote,
+            colors = currentInputMode.buttonColorsColors(),
+            buttonClick = notesClick,
+            data = SudokuFunctionalButtonData(
+                icon = currentInputMode.buttonNoteIcon(),
                 contentDescription = R.string.notes_content_desc,
                 text = R.string.notes
             )
@@ -135,8 +130,7 @@ private fun SudokuGameButtonsRow(
                 text = R.string.undo
             ),
             buttonClick = undoClick,
-
-            )
+        )
 
         SudokuFunctionalButton(
             data = SudokuFunctionalButtonData(
@@ -145,17 +139,34 @@ private fun SudokuGameButtonsRow(
                 text = R.string.clear
             ),
             buttonClick = { onNumberClick(0) },
-
-            )
+        )
     }
 }
 
+@Composable
+fun InputMode.buttonNoteIcon() = when (this) {
+    InputMode.NOTES -> Icons.Default.EditNote
+    InputMode.VALUE -> Icons.Default.ModeEdit
+}
+
+@Composable
+fun InputMode.buttonColorsColors() = ButtonDefaults.buttonColors(
+    containerColor = if (this == InputMode.NOTES) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        MaterialTheme.colorScheme.primary
+    }, contentColor = if (this == InputMode.NOTES) {
+        MaterialTheme.colorScheme.onPrimaryContainer
+    } else {
+        MaterialTheme.colorScheme.onPrimary
+    }
+)
+
+
 data class SudokuFunctionalButtonData(
     val icon: ImageVector,
-    @StringRes
-    val contentDescription: Int,
-    @StringRes
-    val text: Int,
+    @StringRes val contentDescription: Int,
+    @StringRes val text: Int,
 )
 
 @Composable
@@ -165,8 +176,7 @@ private fun SudokuFunctionalButton(
     buttonClick: () -> Unit,
 ) {
     Button(
-        onClick = buttonClick,
-        colors = colors
+        onClick = buttonClick, colors = colors
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
@@ -181,8 +191,7 @@ private fun SudokuFunctionalButton(
 
 @Composable
 fun NumberInputButton(
-    numberState: SudokuNumberButtonState,
-    onNumberClick: (Int) -> Unit
+    numberState: SudokuNumberButtonState, onNumberClick: (Int) -> Unit
 ) {
 
     var countChanged by remember { mutableStateOf(false) }
@@ -197,16 +206,14 @@ fun NumberInputButton(
             MaterialTheme.colorScheme.onPrimary
         } else {
             MaterialTheme.colorScheme.onSecondary
-        },
-        animationSpec = tween(durationMillis = ANIMATION_DURATION_300)
+        }, animationSpec = tween(durationMillis = ANIMATION_DURATION_300)
     )
     val boxColor by animateColorAsState(
         targetValue = if (numberState.isPossible) {
             MaterialTheme.colorScheme.primary
         } else {
             MaterialTheme.colorScheme.secondary
-        },
-        animationSpec = tween(durationMillis = ANIMATION_DURATION_300)
+        }, animationSpec = tween(durationMillis = ANIMATION_DURATION_300)
     )
 
 
@@ -218,8 +225,7 @@ fun NumberInputButton(
             durationMillis = ANIMATION_DURATION_200
             colorOutline at 0
             colorOutlineVariant at ANIMATION_DURATION_200
-        }
-    )
+        })
 
     Box(
         modifier = Modifier
@@ -227,8 +233,7 @@ fun NumberInputButton(
             .clip(RoundedCornerShape(4.dp))
             .background(boxColor)
             .border(1.dp, Color.Black, RoundedCornerShape(4.dp))
-            .clickable { onNumberClick(numberState.number) },
-        contentAlignment = Alignment.Center
+            .clickable { onNumberClick(numberState.number) }, contentAlignment = Alignment.Center
     ) {
         Text(
             text = numberState.number.toString(),
@@ -251,8 +256,7 @@ fun NumberInputButton(
 }
 
 @Preview(
-    showBackground = true,
-    uiMode = Configuration.UI_MODE_NIGHT_YES
+    showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES
 )
 @Composable
 @Suppress("MagicNumber")
@@ -277,6 +281,38 @@ fun PreviewNumberInputRow() {
                     undoClick = {},
                     notesClick = {},
                     currentInputMode = InputMode.VALUE
+                )
+            )
+        }
+    }
+}
+
+@Preview(
+    showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES
+)
+@Composable
+@Suppress("MagicNumber")
+fun PreviewNumberInputRowEdit() {
+    PersonalTheme {
+        val sampleNumbers = listOf(
+            SudokuNumberButtonState(1, true, 5),
+            SudokuNumberButtonState(2, false, 0),
+            SudokuNumberButtonState(3, true, 2),
+            SudokuNumberButtonState(4, true, 8),
+            SudokuNumberButtonState(5, true, 1),
+            SudokuNumberButtonState(6, true, 0),
+            SudokuNumberButtonState(7, true, 3),
+            SudokuNumberButtonState(8, true, 6),
+            SudokuNumberButtonState(9, true, 4)
+        )
+        Surface {
+            SudokuNumberInputRow(
+                data = SudokuNumberInputRowData(
+                    numbers = sampleNumbers,
+                    onNumberClick = {},
+                    undoClick = {},
+                    notesClick = {},
+                    currentInputMode = InputMode.NOTES
                 )
             )
         }

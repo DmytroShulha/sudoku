@@ -68,8 +68,6 @@ kotlin-serialize = { id = "org.jetbrains.kotlin.plugin.serialization", version.r
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 androidx-room = { id = "androidx.room", version.ref = "room" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
-jacocoandroid = { id = "com.dicedmelon.gradle.jacoco-android", version = "0.1.5" }
-#com.dicedmelon.gradle:jacoco-android:0.1.5
 
 [bundles]
 koinForAndroid = [

@@ -126,7 +126,7 @@ private fun RowScope.BoardRowCellItem(
     val thinLineDp = 1.dp
     val lineColor = MaterialTheme.colorScheme.tertiary
 
-    val isSelected by remember {
+    val isSelected by remember(data, data.selectedCellPosition) {
         derivedStateOf {
             data.selectedCellPosition?.first == data.rowIndex &&
                     data.selectedCellPosition.second == data.colIndex
@@ -135,8 +135,8 @@ private fun RowScope.BoardRowCellItem(
 
     Box(
         modifier = Modifier
-            .weight(1f) // Each cell Box takes equal width in a Row
-            .aspectRatio(1f) // Ensure cell Box is square before SudokuCellView fills it
+            .weight(1f)
+            .aspectRatio(1f)
     ) {
         SudokuCellView(
             cell = data.cellState,
