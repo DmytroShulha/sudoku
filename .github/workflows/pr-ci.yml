@@ -46,6 +46,10 @@ jobs:
           path: |
             app/build/outputs/bundle/debug/app-debug.aab
             app/build/outputs/mapping/release/mapping.txt
+            app/build/reports/detekt
+            app/build/reports/tests/testDebugUnitTest
+            app/build/reports/coverage/test/debug
+            app/build/reports/lint-results-debug.html
           retention-days: 3
 
       - name: Extract JaCoCo Coverage Percentage
