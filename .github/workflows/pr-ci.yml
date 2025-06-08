@@ -58,7 +58,7 @@ jobs:
           # Ensure xmllint is available (usually is on ubuntu-latest)
           sudo apt-get update && sudo apt-get install -y libxml2-utils
 
-          JACOCO_XML_PATH="app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml"
+          JACOCO_XML_PATH="app/build/reports/coverage/test/debug/report.xml"
 
           if [ -f "$JACOCO_XML_PATH" ]; then
             INSTRUCTION_MISSED=$(xmllint --xpath "string(/report/counter[@type='INSTRUCTION']/@missed)" $JACOCO_XML_PATH)
@@ -98,6 +98,7 @@ jobs:
           echo "**Code Coverage Report:** Uploaded as an artifact." >> comment_body.md
           echo "**Debug AAB:** Uploaded as an artifact: \`app-debug-pr-${{ github.event.pull_request.number }}-${{ github.sha }}\`" >> comment_body.md
           echo "" >> comment_body.md
+          echo "Download from the [workflow run summary page](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})." >> comment_body.md
           echo "---" >> comment_body.md
           echo "_Workflow run: [${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}]({{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})_" >> comment_body.md
 
