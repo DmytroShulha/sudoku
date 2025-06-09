@@ -6,7 +6,7 @@ on:
       release_ref:
         description: 'Release branch or tag to build and publish (e.g., release/1.0.1 or v1.0.1)'
         required: true
-        default: 'release/0.0.0' # Placeholder, ensure you enter a valid ref
+        default: 'release/0.0.0'
       play_store_track:
         description: 'Play Store track (e.g., internal, alpha, beta, production)'
         required: true
@@ -42,11 +42,8 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Run Android Lint (Release)
-        run: ./gradlew lintRelease
-
-      - name: Run unit tests (Release)
-        run: ./gradlew testReleaseUnitTest
+      - name: Run [unit tests][detekt][Android Lint][jacoco] (Release)
+        run: ./gradlew lintRelease detektRelease testReleaseUnitTest jacocoTestReport
 
       - name: Build and Sign Release AAB
         env:
@@ -66,6 +63,10 @@ jobs:
             app/build/outputs/mapping/release/seeds.txt
             app/build/outputs/mapping/release/usage.txt
             app/build/outputs/mapping/release/configuration.txt
+            app/build/reports/detekt
+            app/build/reports/tests/testReleaseUnitTest
+            app/build/reports/coverage/test/debug
+            app/build/reports/lint-results-release.html
           retention-days: 60
 
 
@@ -77,6 +78,6 @@ jobs:
           releaseFiles: app/build/outputs/bundle/release/app-release.aab
           mappingFile: app/build/outputs/mapping/release/mapping.txt
           track: ${{ github.event.inputs.play_store_track }}
-          status: completed # Or 'draft', 'inProgress'
+          status: draft # Or 'draft', 'inProgress'
           # userFraction: 0.1 # For staged rollouts, if needed
           # whatsNewDirectory: 'path/to/whatsnew/' # For release notes

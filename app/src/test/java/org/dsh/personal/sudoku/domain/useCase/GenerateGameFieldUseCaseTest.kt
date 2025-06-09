@@ -9,6 +9,7 @@ import kotlinx.coroutines.test.runTest
 import org.dsh.personal.sudoku.domain.entity.Difficulty
 import org.dsh.personal.sudoku.domain.repository.SudokuGenerator
 import org.dsh.personal.sudoku.domain.repository.SudokuRepository
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -54,8 +55,8 @@ class GenerateGameFieldUseCaseTest {
 
         // Verify the result is the one returned by the repository
         assertEquals("The returned grid pair should match the one from the repository.", expectedGridPair, resultGridPair)
-        assertEquals("The puzzle part of the pair should match.", expectedPuzzle, resultGridPair.first)
-        assertEquals("The solution part of the pair should match.", expectedSolution, resultGridPair.second)
+        assertArrayEquals("The puzzle part of the pair should match.", expectedPuzzle, resultGridPair.first)
+        assertArrayEquals("The solution part of the pair should match.", expectedSolution, resultGridPair.second)
     }
 
     @Test

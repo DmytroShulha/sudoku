@@ -25,11 +25,8 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Run Android Lint (Release)
-        run: ./gradlew lintRelease
-
-      - name: Run unit tests (Release)
-        run: ./gradlew testReleaseUnitTest
+      - name: Run [unit tests][detekt][Android Lint][jacoco] (Release)
+        run: ./gradlew lintRelease detektRelease testReleaseUnitTest jacocoTestReport
 
       - name: Build and Sign Release AAB
         env:
@@ -49,4 +46,8 @@ jobs:
             app/build/outputs/mapping/release/seeds.txt
             app/build/outputs/mapping/release/usage.txt
             app/build/outputs/mapping/release/configuration.txt
+            app/build/reports/detekt
+            app/build/reports/tests/testReleaseUnitTest
+            app/build/reports/coverage/test/debug
+            app/build/reports/lint-results-release.html
           retention-days: 14
