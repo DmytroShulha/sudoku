@@ -14,6 +14,19 @@ plugins {
     jacoco
 }
 
+fun loadVersionProperties(project: Project): Properties {
+    val properties = Properties()
+    val propertiesFile = project.file("version.properties") // Assumes version.properties is in the app module root
+    if (propertiesFile.exists()) {
+        FileInputStream(propertiesFile).use { fis ->
+            properties.load(fis)
+        }
+    } else {
+        project.logger.warn("WARNING: version.properties file not found in ${project.projectDir}. Using default versions.")
+    }
+    return properties
+}
+
 android {
     signingConfigs {
         create("release") {
@@ -70,8 +83,10 @@ android {
         applicationId = "org.dsh.personal.sudoku"
         minSdk = 28
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.9.1"
+        val versionProps = loadVersionProperties(project)
+
+        versionCode = versionProps.getProperty("appVersionCode", "").toInt()
+        versionName = versionProps.getProperty("appVersionName", "")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
