@@ -24,7 +24,7 @@ android {
 
             if (keystoreBase64 != null && keystorePassword != null && keyAliasName != null && keyPasswordValue != null) {
                 // Define the path for the decoded keystore file in the build directory
-                val keystoreFile = File(project.layout.buildDirectory.toString(), "tmp/release.jks")
+                val keystoreFile = File(project.layout.buildDirectory.get().asFile.path, "tmp/release.jks")
                 keystoreFile.parentFile.mkdirs()
                 keystoreFile.delete()
                 keystoreFile.createNewFile()
