@@ -84,9 +84,8 @@ android {
         minSdk = 28
         targetSdk = 36
         val versionProps = loadVersionProperties(project)
-
-        versionCode = versionProps.getProperty("appVersionCode", "").toInt()
-        versionName = versionProps.getProperty("appVersionName", "")
+        versionCode = versionProps.getProperty("appVersionCode", "1").toInt()
+        versionName = versionProps.getProperty("appVersionName", "1")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
