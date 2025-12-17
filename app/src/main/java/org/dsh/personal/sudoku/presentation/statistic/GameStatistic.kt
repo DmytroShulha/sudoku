@@ -77,7 +77,10 @@ fun DifficultyStatsSection(difficulty: Difficulty, stats: DifficultyStats) {
         } else {
             0.0
         }
-        StatItem(stringResource(R.string.win_rate), String.format(Locale.getDefault(), "%.1f%%", winRate))
+        StatItem(
+            stringResource(R.string.win_rate),
+            String.format(Locale.getDefault(), "%.1f%%", winRate)
+        )
         StatItem(stringResource(R.string.avg_time), formatTime(stats.averageCompletionTimeMillis))
         StatItem(stringResource(R.string.best_time), formatTime(stats.fastestCompletionTimeMillis))
     }
@@ -85,7 +88,11 @@ fun DifficultyStatsSection(difficulty: Difficulty, stats: DifficultyStats) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SudokuAnalyticsScreen(onNavigateBack: () -> Unit, stats: SudokuGameStats, onClearStat: ()-> Unit) {
+fun SudokuAnalyticsScreen(
+    onNavigateBack: () -> Unit,
+    stats: SudokuGameStats,
+    onClearStat: () -> Unit
+) {
     var showConfirmDialog by remember { mutableStateOf(false) }
     val decimalFormat = remember { DecimalFormat("#,##0.0") }
     Scaffold(
@@ -93,8 +100,9 @@ fun SudokuAnalyticsScreen(onNavigateBack: () -> Unit, stats: SudokuGameStats, on
             StatisticTopBar(onNavigateBack) { showConfirmDialog = true }
         }
     ) { paddingValues ->
-        StatisticConfirmDialog(showConfirmDialog, onClearStat) { showConfirmDialog = false }
-
+        if (showConfirmDialog) {
+            StatisticConfirmDialog(onClearStat) { showConfirmDialog = false }
+        }
         LazyColumn(
             modifier = Modifier
                 .padding(paddingValues)
@@ -104,7 +112,6 @@ fun SudokuAnalyticsScreen(onNavigateBack: () -> Unit, stats: SudokuGameStats, on
             // Overall Stats Section
             statOverAll(stats, decimalFormat)
 
-            // Records Section (Overall Best Times) - Using the overall best times from SudokuGameStats
             statRecords(stats)
 
             // Difficulty Breakdown Section
@@ -223,41 +230,38 @@ private fun LazyListScope.statDifficulties(stats: SudokuGameStats) {
 
 @Composable
 private fun StatisticConfirmDialog(
-    showConfirmDialog: Boolean,
     onClearStat: () -> Unit,
     inDismiss: () -> Unit,
 ) {
-    if (showConfirmDialog) {
-        AlertDialog(
-            onDismissRequest = inDismiss,
-            title = { Text(stringResource(R.string.confirm_reset_title)) },
-            text = { Text(stringResource(R.string.confirm_reset_message)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onClearStat()
-                        inDismiss()
-                    }
-                ) {
-                    Text(stringResource(R.string.reset))
+    AlertDialog(
+        onDismissRequest = inDismiss,
+        title = { Text(stringResource(R.string.confirm_reset_title)) },
+        text = { Text(stringResource(R.string.confirm_reset_message)) },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    onClearStat()
+                    inDismiss()
                 }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = inDismiss
-                ) {
-                    Text(stringResource(R.string.cancel))
-                }
+            ) {
+                Text(stringResource(R.string.reset))
             }
-        )
-    }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = inDismiss
+            ) {
+                Text(stringResource(R.string.cancel))
+            }
+        }
+    )
 }
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 private fun StatisticTopBar(
     onNavigateBack: () -> Unit,
-    showConfirmDialog: ()->Unit
+    showConfirmDialog: () -> Unit
 ) {
     TopAppBar(
         title = { Text(stringResource(R.string.statistic)) },
@@ -265,7 +269,8 @@ private fun StatisticTopBar(
             IconButton(onClick = onNavigateBack) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.back)
+                    contentDescription = stringResource(R.string.back),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
         },
