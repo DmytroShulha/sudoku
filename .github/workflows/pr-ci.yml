@@ -33,7 +33,7 @@ jobs:
         run: ./gradlew lintDebug
 
       - name: Run unit tests (Debug)
-        run: ./gradlew detektDebug testDebugUnitTest jacocoTestReport
+        run: ./gradlew detekt testDebugUnitTest jacocoTestReport
 
       - name: Build Debug AAB
         # No signing needed for PR debug builds
@@ -84,6 +84,7 @@ jobs:
           fi
 
       - name: Prepare PR Comment Content
+        if: always()
         id: prepare_comment
         run: |
           echo "## PR CI Summary 🤖" > comment_body.md
@@ -93,7 +94,14 @@ jobs:
           # Add more dynamic content here based on previous steps if needed
           echo "**Lint:** Passed (Placeholder)" >> comment_body.md
           echo "**Unit Tests:** Passed (Placeholder)" >> comment_body.md
-          echo "$COVERAGE_LINE" >> comment_body.md
+          
+          COVERAGE_PERCENTAGE="${{ steps.coverage_extract.outputs.percentage }}"
+          if [ -n "$COVERAGE_PERCENTAGE" ]; then
+            echo "**Code Coverage:** $COVERAGE_PERCENTAGE%" >> comment_body.md
+          else
+            echo "**Code Coverage:** N/A" >> comment_body.md
+          fi
+
           echo "" >> comment_body.md
           echo "**Code Coverage Report:** Uploaded as an artifact." >> comment_body.md
           echo "**Debug AAB:** Uploaded as an artifact: \`app-debug-pr-${{ github.event.pull_request.number }}-${{ github.sha }}\`" >> comment_body.md

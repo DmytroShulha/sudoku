@@ -18,7 +18,7 @@ class SudokuGameRepository(
     private val entryDao: EntryDao,
     private val ioDispatcher: CoroutineDispatcher,
     private val defaultDispatcher: CoroutineDispatcher,
-    ) : SudokuRepository {
+) : SudokuRepository {
     override suspend fun generateGrid(
         generator: SudokuGenerator,
         difficulty: Difficulty
@@ -33,7 +33,7 @@ class SudokuGameRepository(
     override suspend fun saveGame(game: SudokuGameState) =
         withContext(ioDispatcher) { gameStorage.saveThemeSettings(game) }
 
-    override suspend fun loadGame(): SudokuGameState? = withContext(ioDispatcher){
+    override suspend fun loadGame(): SudokuGameState? = withContext(ioDispatcher) {
         gameStorage.currentGame.first()
     }
 
@@ -43,7 +43,7 @@ class SudokuGameRepository(
 
     override suspend fun storeStatistic() = withContext(ioDispatcher) {
         val state = loadGame()
-        if(state != null) {
+        if (state != null) {
             entryDao.insertEntry(
                 StatisticEntry(
                     gameId = state.gameId,
@@ -60,17 +60,19 @@ class SudokuGameRepository(
         }
     }
 
-    override suspend fun clearStatistic() = withContext(ioDispatcher) {entryDao.clearStatistic() }
+    override suspend fun clearStatistic() = withContext(ioDispatcher) { entryDao.clearStatistic() }
 
     override suspend fun readStatistic(): SudokuGameStats = withContext(ioDispatcher) {
 
-        val totalGamesPlayed = entryDao.getTotalGamesPlayed().first() // Get the first value from the Flow
+        val totalGamesPlayed =
+            entryDao.getTotalGamesPlayed().first() // Get the first value from the Flow
         val totalGamesWon = entryDao.getTotalGamesWon().first()
 
         // Function to get stats for a specific difficulty
         suspend fun getStatsForDifficulty(difficulty: Difficulty): DifficultyStats {
             val difficultyString = difficulty.toString()
-            val gamesPlayed = entryDao.getGameStatisticsByDifficulty(difficultyString).first().size // Get the count
+            val gamesPlayed = entryDao.getGameStatisticsByDifficulty(difficultyString)
+                .first().size // Get the count
             val solvedGames = entryDao.getSolvedGameStatisticsByDifficulty(difficultyString).first()
             val gamesWon = solvedGames.size
             val averageTime =

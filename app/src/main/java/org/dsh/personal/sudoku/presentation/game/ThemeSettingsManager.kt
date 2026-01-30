@@ -38,13 +38,10 @@ class ThemeSettingsManager(private val context: Context) {
             )
         }
 
-    // Function to save the theme settings
-    suspend fun saveThemeSettings(theme: SudokuBoardTheme) {
-        context.themeDataStore.edit { preferences ->
-            preferences[PreferencesKeys.USE_SYSTEM] = theme.useSystem
-            preferences[PreferencesKeys.IS_DARK] = theme.isDark
-            preferences[PreferencesKeys.IS_DYNAMIC] = theme.isDynamic
-        }
+    suspend fun saveThemeSettings(theme: SudokuBoardTheme) = context.themeDataStore.edit { preferences ->
+        preferences[PreferencesKeys.USE_SYSTEM] = theme.useSystem
+        preferences[PreferencesKeys.IS_DARK] = theme.isDark
+        preferences[PreferencesKeys.IS_DYNAMIC] = theme.isDynamic
     }
 
     // Flow to read the theme settings
@@ -58,10 +55,8 @@ class ThemeSettingsManager(private val context: Context) {
         }
 
     // Function to save the theme settings
-    suspend fun saveEffectsSettings(theme: SudokuEffects) {
-        context.themeDataStore.edit { preferences ->
+    suspend fun saveEffectsSettings(theme: SudokuEffects) = context.themeDataStore.edit { preferences ->
             preferences[PreferencesKeys.USE_HAPTIC] = theme.useHaptic
             preferences[PreferencesKeys.USE_SOUNDS] = theme.useSounds
         }
-    }
 }

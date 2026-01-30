@@ -1,6 +1,7 @@
 package org.dsh.personal.sudoku
 
-import org.dsh.personal.sudoku.core.AppRoutes
+import androidx.navigation3.runtime.NavKey
+import kotlinx.serialization.Serializable
 import org.dsh.personal.sudoku.data.di.sudokuDataDi
 import org.dsh.personal.sudoku.domain.sudokuDomainDi
 import org.dsh.personal.sudoku.presentation.sudokuPresentationDi
@@ -17,13 +18,11 @@ val sudokuDi = module {
 
 object SudokuRoutes {
     const val PARAM_CONTINUE = "continue"
-
-    const val MAIN_MENU = "${AppRoutes.SUDOKU_FEATURE}/main_menu"
-    const val GAME_SCREEN = "${AppRoutes.SUDOKU_FEATURE}/game_screen/{difficulty}"
-    const val SETTINGS_SCREEN = "${AppRoutes.SUDOKU_FEATURE}/settings_screen"
-    const val SUCCESS_SCREEN = "${AppRoutes.SUDOKU_FEATURE}/success_screen"
-    const val STATISTIC_SCREEN = "${AppRoutes.SUDOKU_FEATURE}/statistic_screen"
-    const val ABOUT_SCREEN = "${AppRoutes.SUDOKU_FEATURE}/about_screen"
-
-    fun gameScreenRoute(difficulty: String) = "${AppRoutes.SUDOKU_FEATURE}/game_screen/$difficulty"
+    @Serializable
+    data object MainMenu: NavKey
+    @Serializable data class GameScreen(val difficulty: String): NavKey
+    @Serializable data object Settings: NavKey
+    @Serializable data object Success: NavKey
+    @Serializable data object Statistic: NavKey
+    @Serializable data object About: NavKey
 }

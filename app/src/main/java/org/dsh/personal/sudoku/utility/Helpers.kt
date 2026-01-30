@@ -18,15 +18,12 @@ fun initializeEmptyGame(): SudokuGameState {
                 value = value,
                 isClue = value != 0 // If value is not 0, it's a clue
             )
-        }
-            .toMutableStateList().toList()
+        }.toMutableStateList().toList()
     }.toMutableStateList().toList()
 
 
     val board = SudokuBoardState(
-        grid = initialGrid,
-        originalPuzzle = puzzleGridValues,
-        potentialSolution = emptyList()
+        grid = initialGrid, originalPuzzle = puzzleGridValues, potentialSolution = emptyList()
     )
 
     return SudokuGameState(
@@ -35,7 +32,7 @@ fun initializeEmptyGame(): SudokuGameState {
         gameId = System.currentTimeMillis().toString(), // Simple unique ID
         gameStatistic = SudokuGameStatistic(
             startTime = System.currentTimeMillis(),
-            endTime = System.currentTimeMillis()
+            endTime = System.currentTimeMillis(),
         )
     )
 }

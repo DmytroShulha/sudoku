@@ -7,23 +7,21 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.navigation.NavController
 import org.dsh.personal.sudoku.SudokuRoutes
+import org.dsh.personal.sudoku.core.Navigator
 import org.dsh.personal.sudoku.domain.entity.SudokuGameState
 import org.dsh.personal.sudoku.presentation.SudokuViewModel
 
 @Composable
 fun SudokuGameSideEffects(
     gameState: SudokuGameState,
-    navController: NavController,
+    navigator: Navigator,
     viewModel: SudokuViewModel
 ) {
     LaunchedEffect(gameState.isSolved) {
         if (gameState.isSolved) {
-            navController.popBackStack(
-                SudokuRoutes.MAIN_MENU, false
-            )
-            navController.navigate(SudokuRoutes.SUCCESS_SCREEN)
+            navigator.goBack()
+            navigator.navigate(SudokuRoutes.Success)
         }
     }
 
