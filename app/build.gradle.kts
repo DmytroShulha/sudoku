@@ -16,7 +16,8 @@ plugins {
 
 fun loadVersionProperties(project: Project): Properties {
     val properties = Properties()
-    val propertiesFile = project.file("version.properties") // Assumes version.properties is in the app module root
+    val propertiesFile = project.file("version.properties")
+
     if (propertiesFile.exists()) {
         FileInputStream(propertiesFile).use { fis ->
             properties.load(fis)
@@ -84,9 +85,8 @@ android {
         minSdk = 28
         targetSdk = 36
         val versionProps = loadVersionProperties(project)
-
-        versionCode = versionProps.getProperty("appVersionCode", "").toInt()
-        versionName = versionProps.getProperty("appVersionName", "")
+        versionCode = versionProps.getProperty("appVersionCode", "1").toInt()
+        versionName = versionProps.getProperty("appVersionName", "1")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -114,6 +114,7 @@ android {
     }
     kotlinOptions {
         jvmTarget = "11"
+        freeCompilerArgs = listOf("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
     }
     buildFeatures {
         compose = true

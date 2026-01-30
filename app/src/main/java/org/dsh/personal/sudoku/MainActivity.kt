@@ -103,7 +103,7 @@ fun MainMenuScreen(onSudokuClick: () -> Unit) {
     ) {
         Button(
             onClick = onSudokuClick,
-            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp) // Add padding to the button
+            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -111,9 +111,9 @@ fun MainMenuScreen(onSudokuClick: () -> Unit) {
             ) {
                 Text("Sudoku")
                 Icon(
-                    imageVector = Icons.Filled.Star, // Replace with your icon
+                    imageVector = Icons.Filled.Star,
                     contentDescription = "Sudoku Icon",
-                    modifier = Modifier.size(24.dp) // Adjust icon size
+                    modifier = Modifier.size(24.dp)
                 )
             }
         }

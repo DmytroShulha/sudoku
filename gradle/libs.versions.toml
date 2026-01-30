@@ -1,22 +1,22 @@
 [versions]
-agp = "8.10.1"
+agp = "8.13.2"
 
-kotlin = "2.1.21"
-coreKtx = "1.16.0"
+kotlin = "2.2.21"
+coreKtx = "1.17.0"
 junit = "4.13.2"
-junitVersion = "1.2.1"
-espressoCore = "3.6.1"
-lifecycleRuntimeKtx = "2.9.1"
-activityCompose = "1.10.1"
-composeBom = "2025.06.00"
-koinVersion = "4.0.4"
-composeNavigationVersion = "2.9.0"
+junitVersion = "1.3.0"
+espressoCore = "3.7.0"
+lifecycleRuntimeKtx = "2.10.0"
+activityCompose = "1.12.2"
+composeBom = "2025.12.01"
+koinVersion = "4.1.1"
+composeNavigationVersion = "2.9.6"
 iconsVersion = "1.7.8"
-room = "2.7.1"
-ksp = "2.1.21-2.0.1"
-sqlite = "2.5.1"
+room = "2.8.4"
+ksp = "2.2.21-2.0.4"
+sqlite = "2.6.2"
 detekt = "1.23.8"
-mockk = "1.14.2"
+mockk = "1.14.7"
 kotlinxCoroutinesTest = "1.10.2"
 
 [libraries]
@@ -46,8 +46,8 @@ koinAndroid = { group = "io.insert-koin", name = "koin-android", version.ref = "
 koinCompose = { group = "io.insert-koin", name = "koin-androidx-compose", version.ref = "koinVersion" }
 
 #Data Store
-data-dataStorePreferences = { group = "androidx.datastore", name = "datastore-preferences", version = "1.1.7" }
-kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.8.1" }
+data-dataStorePreferences = { group = "androidx.datastore", name = "datastore-preferences", version = "1.2.0" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.9.0" }
 
 # Room
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }

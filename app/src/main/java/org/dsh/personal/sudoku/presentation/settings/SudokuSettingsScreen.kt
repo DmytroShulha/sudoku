@@ -116,7 +116,8 @@ private fun SettingsToolBar(onBackClick: () -> Unit) {
         IconButton(onClick = onBackClick) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.back)
+                contentDescription = stringResource(R.string.back),
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
     }, colors = TopAppBarDefaults.topAppBarColors(

@@ -63,7 +63,8 @@ fun GameToolBar(
             IconButton(onClick = popBack) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.back)
+                    contentDescription = stringResource(R.string.back),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
         }, colors = TopAppBarDefaults.topAppBarColors(
