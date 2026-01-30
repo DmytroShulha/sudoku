@@ -193,7 +193,7 @@ fun SudokuCellViewPreviewNotes() {
             id = SyncStateContract.Constants.DATA,
             value = 0,
             isClue = false,
-            notes = setOf(SudokuCellNote(1), SudokuCellNote(4), SudokuCellNote(6))
+            notes = setOf(SudokuCellNote(1), SudokuCellNote(2), SudokuCellNote(3))
         ),
         isSelected = false,
         onClick = {},

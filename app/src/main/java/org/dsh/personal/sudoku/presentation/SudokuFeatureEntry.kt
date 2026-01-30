@@ -24,11 +24,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dsh.personal.sudoku.R
 import org.dsh.personal.sudoku.SudokuRoutes
+import org.dsh.personal.sudoku.core.Navigator
 import org.dsh.personal.sudoku.domain.entity.Difficulty
 import org.dsh.personal.sudoku.domain.entity.SudokuGameState
 import org.dsh.personal.sudoku.presentation.about.AboutScreen
@@ -54,24 +54,24 @@ import org.koin.androidx.compose.koinViewModel
 
 object SudokuFeatureEntry {
     @Composable
-    fun SudokuMainMenuScreen(navController: NavController) {
+    fun SudokuMainMenuScreen(navigator: Navigator) {
         val viewModel: SudokuViewModel = koinViewModel()
         val settings by viewModel.sudokuSettings.collectAsStateWithLifecycle()
-        SudokuMainMenu(data = SudokuMainMenuData(
-            hasContinueGame = settings.hasContinueGame,
+        SudokuMainMenu(
+            data = SudokuMainMenuData(
+                hasContinueGame = settings.hasContinueGame,
             onStartGame = { difficulty ->
-                navController.navigate(SudokuRoutes.gameScreenRoute(difficulty.name))
+                navigator.navigate(SudokuRoutes.GameScreen(difficulty.name))
             },
-            onResumeGame = { navController.navigate(SudokuRoutes.gameScreenRoute(SudokuRoutes.PARAM_CONTINUE)) },
-            onAboutClick = { navController.navigate(SudokuRoutes.ABOUT_SCREEN) },
-            onSettingsClick = { navController.navigate(SudokuRoutes.SETTINGS_SCREEN) },
-            onStatisticClick = { navController.navigate(SudokuRoutes.STATISTIC_SCREEN) }
-        ))
+            onResumeGame = { navigator.navigate(SudokuRoutes.GameScreen(SudokuRoutes.PARAM_CONTINUE)) },
+            onAboutClick = { navigator.navigate(SudokuRoutes.About) },
+            onSettingsClick = { navigator.navigate(SudokuRoutes.Settings) },
+            onStatisticClick = { navigator.navigate(SudokuRoutes.Statistic) }))
     }
 
     @Composable
     fun SudokuGameScreen(
-        navController: NavController,
+        navigator: Navigator,
         difficultyString: String?,
         windowSizeClass: WindowSizeClass,
     ) {
@@ -92,7 +92,7 @@ object SudokuFeatureEntry {
 
         var showThemeDialog by remember { mutableStateOf(false) }
         val gameState by viewModel.gameState.collectAsState()
-        SudokuGameSideEffects(gameState, navController, viewModel)
+        SudokuGameSideEffects(gameState, navigator, viewModel)
 
         PersonalTheme(isDark, useMaterial3Colors) {
             Scaffold(
@@ -100,7 +100,7 @@ object SudokuFeatureEntry {
                     GameToolBar(
                         gameState = gameState,
                         settings = settings,
-                        popBack = { navController.popBackStack() },
+                        popBack = { navigator.goBack() },
                         showThemeDialog = { showThemeDialog = true },
                         onPauseResumeClick = {
                             if (settings.isPaused) {
@@ -108,8 +108,7 @@ object SudokuFeatureEntry {
                             } else {
                                 viewModel.handleIntent(SudokuViewModel.SudokuIntent.PauseGameTimer)
                             }
-                        }
-                    )
+                        })
                 }) { padding ->
 
                 SudokuGame(
@@ -122,9 +121,7 @@ object SudokuFeatureEntry {
                         onNumberClick = viewModel::inputNumber2,
                         undoClick = viewModel::undo,
                         notesClick = viewModel::toggleInputMode,
-                        resumeGame = { viewModel.handleIntent(SudokuViewModel.SudokuIntent.ResumeGameTimer) }
-                    )
-                )
+                        resumeGame = { viewModel.handleIntent(SudokuViewModel.SudokuIntent.ResumeGameTimer) }))
             }
 
             if (showThemeDialog) {
@@ -138,7 +135,7 @@ object SudokuFeatureEntry {
     }
 
     @Composable
-    fun SudokuAbout(navController: NavController) {
+    fun SudokuAbout(navigator: Navigator) {
         val viewModel: AboutViewModel = koinViewModel()
         val uriHandler = LocalUriHandler.current
         val urlHowToPlay = stringResource(R.string.sudoku_how_to_play)
@@ -148,7 +145,7 @@ object SudokuFeatureEntry {
 
         AboutScreen(
             onHowToPlayClick = { uriHandler.openUri(urlHowToPlay) },
-            onNavigateBack = navController::popBackStack,
+            onNavigateBack = navigator::goBack,
             params = AboutScreenData(
                 appName = stringResource(R.string.app_name),
                 appVersion = viewModel.appVersionName,
@@ -160,20 +157,20 @@ object SudokuFeatureEntry {
     }
 
     @Composable
-    fun SudokuSettings(navController: NavController) {
+    fun SudokuSettings(navigator: Navigator) {
         val viewModel = koinViewModel<SudokuViewModel>()
         val settings by viewModel.sudokuSettings.collectAsStateWithLifecycle()
 
         SudokuSettingsScreen(
             settings = settings,
-            onBackClick = navController::popBackStack,
+            onBackClick = navigator::goBack,
             onSaveSettings = viewModel::saveSettings,
         )
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun SudokuSuccessGame(navController: NavController, gameState: SudokuGameState) {
+    fun SudokuSuccessGame(navigator: Navigator, gameState: SudokuGameState) {
 
         var showNewGame by remember { mutableStateOf(false) }
 
@@ -196,15 +193,14 @@ object SudokuFeatureEntry {
                         showNewGame = true
                     },
                     onMainMenuClicked = {
-                        navController.popBackStack(
-                            SudokuRoutes.MAIN_MENU, false
-                        )
+                        navigator.goBack()
+                        navigator.goBack()
                     },
                     onShareClicked = null,
                 )
 
                 if (showNewGame) {
-                    NewGameModal(onDismiss = { showNewGame = false }, scope, navController)
+                    NewGameModal(onDismiss = { showNewGame = false }, scope, navigator)
                 }
             }
         }
@@ -213,15 +209,14 @@ object SudokuFeatureEntry {
     @Composable
     @OptIn(ExperimentalMaterial3Api::class)
     private fun NewGameModal(
-        onDismiss: () -> Unit,
-        scope: CoroutineScope,
-        navController: NavController
+        onDismiss: () -> Unit, scope: CoroutineScope, navigator: Navigator
     ) {
         val sheetState = rememberModalBottomSheetState(
             skipPartiallyExpanded = true // Expands fully or hides
         )
         ModalBottomSheet(
-            sheetState = sheetState, onDismissRequest = onDismiss) {
+            sheetState = sheetState, onDismissRequest = onDismiss
+        ) {
             DifficultySelectionSheet(
                 difficulties = Difficulty.entries,
                 onDifficultySelected = { selectedDifficulty ->
@@ -230,14 +225,10 @@ object SudokuFeatureEntry {
                     }.invokeOnCompletion {
                         if (!sheetState.isVisible) {
                             onDismiss()
-                            navController.popBackStack(
-                                SudokuRoutes.MAIN_MENU, false
-                            )
-                            navController.navigate(
-                                SudokuRoutes.gameScreenRoute(
-                                    selectedDifficulty.name
-                                )
-                            )
+                            navigator.goBack()
+                            navigator.goBack()
+                            navigator.navigate(SudokuRoutes.GameScreen(selectedDifficulty.name))
+
                         }
                     }
                 },
@@ -254,7 +245,7 @@ object SudokuFeatureEntry {
     }
 
     @Composable
-    fun SudokuGameStatistic(navController: NavController) {
+    fun SudokuGameStatistic(navigator: Navigator) {
         val viewModel: StatisticViewModel = koinViewModel()
         val state by viewModel.gameStat.collectAsStateWithLifecycle()
         val gameState = state.gameStats
@@ -263,11 +254,14 @@ object SudokuFeatureEntry {
             !state.isLoading && gameState != null -> {
                 SudokuAnalyticsScreen(
                     stats = gameState,
-                    onNavigateBack = navController::popBackStack,
+                    onNavigateBack = navigator::goBack,
                     onClearStat = viewModel::clearStat,
                 )
             }
-            else -> ErrorState(errorMessage = stringResource(R.string.error_loading_statistic), retry = false) { }
+
+            else -> ErrorState(
+                errorMessage = stringResource(R.string.error_loading_statistic), retry = false
+            ) { }
         }
     }
 }
