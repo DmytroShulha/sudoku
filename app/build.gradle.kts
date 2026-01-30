@@ -17,6 +17,7 @@ plugins {
 fun loadVersionProperties(project: Project): Properties {
     val properties = Properties()
     val propertiesFile = project.file("version.properties")
+
     if (propertiesFile.exists()) {
         FileInputStream(propertiesFile).use { fis ->
             properties.load(fis)
