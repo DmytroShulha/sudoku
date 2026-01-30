@@ -4,13 +4,10 @@ import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -25,8 +22,6 @@ import androidx.compose.material.icons.filled.Gite
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.Policy
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -38,8 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable // Import for custom immutable classes
-import androidx.compose.runtime.Stable // Import for marking stable classes/functions
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -51,14 +45,14 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import org.dsh.personal.sudoku.BuildConfig
 import org.dsh.personal.sudoku.R
 import org.dsh.personal.sudoku.presentation.view.Dimens
+import org.dsh.personal.sudoku.presentation.view.InfoItem
+import org.dsh.personal.sudoku.presentation.view.LinkItem
 import org.dsh.personal.sudoku.theme.PersonalTheme
 import java.time.Year
 
@@ -121,9 +115,8 @@ fun AboutScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AppHeaderSection(
-                appName = appName, // Use the hoisted appName
+                appName = appName,
                 versionText = versionText,
-                // Pass other required strings if they were hoisted and are specific here
             )
 
             DeveloperSection(developedByText = developedByText)
@@ -138,10 +131,10 @@ fun AboutScreen(
 
             LinksSection(
                 onHowToPlayClick = onHowToPlayClick,
-                uriHandler = uriHandler, // Pass hoisted uriHandler
-                context = context, // Pass hoisted context
+                uriHandler = uriHandler,
+                context = context,
                 privacyPolicyUrl = privacyPolicyUrl,
-                params = params // params is already stable (data class with vals)
+                params = params
             )
 
             Spacer(Modifier.weight(1f))
@@ -241,7 +234,7 @@ private fun linkExecution(
     Log.d("AboutScreen", "Attempting to open URI: $link")
     try {
         uriHandler.openUri(link)
-    } catch (e: Exception) { // Catch broader Exception if other issues can occur
+    } catch (e: IllegalArgumentException) {
         Log.e("AboutScreen", "Error opening URI: $link", e)
         Toast.makeText(context, R.string.something_went_wrong, Toast.LENGTH_SHORT).show()
     }
@@ -314,97 +307,6 @@ data class InfoItemData(
     val isMultiline: Boolean = false,
     val textAlign: TextAlign = TextAlign.Start,
 )
-
-@Stable
-@Composable
-fun InfoItem(
-    data: InfoItemData, // data is now an @Immutable data class instance
-) {
-    Row(
-        verticalAlignment = if (data.isMultiline) Alignment.Top else Alignment.CenterVertically,
-        modifier = data.modifier // data.modifier comes from the InfoItemData which should be stable
-            .fillMaxWidth()
-            .padding(vertical = Dimens.Medium)
-            .padding(end = Dimens.Medium)
-    ) {
-        Icon(
-            imageVector = data.icon,
-            contentDescription = data.label, // Content description comes from potentially dynamic data
-            modifier = Modifier.size(Dimens.Icon),
-            tint = MaterialTheme.colorScheme.secondary
-        )
-        Spacer(Modifier.width(Dimens.Large))
-        Column {
-            Text(
-                text = data.label,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = data.text,
-                style = getStyle(data), // getStyle is a simple conditional, efficient
-                textAlign = data.textAlign,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-    }
-}
-
-@Stable
-@Composable
-private fun getStyle(data: InfoItemData): TextStyle =
-    if (data.isMultiline)
-        MaterialTheme.typography.bodyMedium
-    else
-        MaterialTheme.typography.bodyLarge
-
-
-@Stable
-@Composable
-fun LinkItem(
-    icon: ImageVector,
-    subicon: ImageVector,
-    text: String,
-    defaultElevation: Dp = Dimens.VerySmall,
-    onClick: () -> Unit, // Ensure this lambda is stable when passed in
-) {
-    Card(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = Dimens.BigSmall),
-        elevation = CardDefaults.cardElevation(defaultElevation = defaultElevation),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = Dimens.Large, vertical = Dimens.BigMedium)
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = text, // Content description from text parameter
-                modifier = Modifier.size(Dimens.Icon),
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Spacer(Modifier.width(Dimens.Large))
-            Text(
-                text = text,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.primary
-            )
-
-            Spacer(Modifier.weight(1f))
-            Icon(
-                imageVector = subicon,
-                contentDescription = null, // Decorative icon
-                modifier = Modifier.size(Dimens.Icon),
-                tint = MaterialTheme.colorScheme.surfaceTint
-            )
-        }
-    }
-}
 
 
 @Preview(showBackground = true)
