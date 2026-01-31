@@ -1,6 +1,5 @@
 package org.dsh.personal.sudoku.presentation.view
 
-// Need to import BorderStroke
 import android.provider.SyncStateContract
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -194,95 +193,64 @@ fun HorizontalDivider(
     )
 }
 
-// Preview for SudokuBoardView
+@Composable
+@Suppress("MagicNumber")
+private fun SudokuBoardPreviewContent() {
+    // Create a sample board for preview
+    val sampleBoard = List(9) { rowIndex ->
+        List(9) { colIndex ->
+            val value = when {
+                rowIndex == 0 && colIndex == 0 -> 5 // Clue
+                rowIndex == 1 && colIndex == 1 -> 3 // User entered
+                rowIndex == 2 && colIndex == 2 -> 8 // Clue with error (for testing)
+                rowIndex == 3 && colIndex == 3 -> 0 // Empty with notes
+                else -> 0 // Empty
+            }
+            val isClue = (rowIndex == 0 && colIndex == 0) || (rowIndex == 2 && colIndex == 2)
+            val notes = if (rowIndex == 3 && colIndex == 3) setOf(
+                SudokuCellNote(1), SudokuCellNote(4), SudokuCellNote(6)
+            ) else emptySet()
+            val isError = rowIndex == 2 && colIndex == 2 // Example error
+
+            SudokuCellState(
+                id = SyncStateContract.Constants.DATA,
+                value = value,
+                isClue = isClue,
+                notes = notes,
+                isError = isError
+            )
+        }
+    }
+
+    Surface {
+        Box(Modifier.padding(16.dp)) { // Add some padding around the board for the preview
+            SudokuBoardView(
+                board = sampleBoard, selectedCellPosition = Pair(1, 1), // Example selected cell
+                onCellClick = { _, _ ->
+                }, settings = SudokuViewModel.SudokuSettings()
+            )
+        }
+    }
+}
+
+// Multipreview for SudokuBoardView
 @Preview(
+    name = "Dark Mode",
     showBackground = true,
     widthDp = 360,
     heightDp = 420,
     uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES or android.content.res.Configuration.UI_MODE_TYPE_NORMAL
 )
+@Preview(
+    name = "Light Mode",
+    showBackground = true,
+    widthDp = 360,
+    heightDp = 420,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO or android.content.res.Configuration.UI_MODE_TYPE_NORMAL
+)
 @Composable
-@Suppress("MagicNumber")
 fun SudokuBoardViewPreview() {
-    // Create a sample board for preview
-    val sampleBoard = List(9) { rowIndex ->
-        List(9) { colIndex ->
-            val value = when (rowIndex) {
-                0 if colIndex == 0 -> 5 // Clue
-                1 if colIndex == 1 -> 3 // User entered
-                2 if colIndex == 2 -> 8 // Clue with error (for testing)
-                3 if colIndex == 3 -> 0 // Empty with notes
-                else -> 0 // Empty
-            }
-            val isClue = (rowIndex == 0 && colIndex == 0) || (rowIndex == 2 && colIndex == 2)
-            val notes = if (rowIndex == 3 && colIndex == 3) setOf(
-                SudokuCellNote(1), SudokuCellNote(4), SudokuCellNote(6)
-            ) else emptySet()
-            val isError = rowIndex == 2 && colIndex == 2 // Example error
-
-            SudokuCellState(
-                id = SyncStateContract.Constants.DATA,
-                value = value,
-                isClue = isClue,
-                notes = notes,
-                isError = isError
-            )
-        }
-    }
-
     PersonalTheme {
-        Surface {
-            Box(Modifier.padding(16.dp)) { // Add some padding around the board for the preview
-                SudokuBoardView(
-                    board = sampleBoard, selectedCellPosition = Pair(1, 1), // Example selected cell
-                    onCellClick = { _, _ ->
-                    }, settings = SudokuViewModel.SudokuSettings()
-                )
-            }
-        }
-    }
-}
-
-
-// Preview for SudokuBoardView
-@Suppress("MagicNumber")
-@Preview(showBackground = true, widthDp = 360, heightDp = 420)
-@Composable
-fun SudokuBoardViewPreviewLight() {
-    val sampleBoard = List(9) { rowIndex ->
-        List(9) { colIndex ->
-            val value = when (rowIndex) {
-                0 if colIndex == 0 -> 5 // Clue
-                1 if colIndex == 1 -> 3 // User entered
-                2 if colIndex == 2 -> 8 // Clue with error (for testing)
-                3 if colIndex == 3 -> 0 // Empty with notes
-                else -> 0 // Empty
-            }
-            val isClue = (rowIndex == 0 && colIndex == 0) || (rowIndex == 2 && colIndex == 2)
-            val notes = if (rowIndex == 3 && colIndex == 3) setOf(
-                SudokuCellNote(1), SudokuCellNote(4), SudokuCellNote(6)
-            ) else emptySet()
-            val isError = rowIndex == 2 && colIndex == 2 // Example error
-
-            SudokuCellState(
-                id = SyncStateContract.Constants.DATA,
-                value = value,
-                isClue = isClue,
-                notes = notes,
-                isError = isError
-            )
-        }
-    }
-
-    PersonalTheme {
-        Surface {
-            Box(Modifier.padding(16.dp)) { // Add some padding around the board for the preview
-                SudokuBoardView(
-                    board = sampleBoard, selectedCellPosition = Pair(1, 1), // Example selected cell
-                    onCellClick = { _, _ ->
-                    }, settings = SudokuViewModel.SudokuSettings()
-                )
-            }
-        }
+        SudokuBoardPreviewContent()
     }
 }
