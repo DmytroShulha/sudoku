@@ -14,6 +14,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import org.dsh.personal.sudoku.R
 import org.dsh.personal.sudoku.domain.entity.SudokuGameState
 import org.dsh.personal.sudoku.presentation.SudokuViewModel
@@ -35,9 +36,12 @@ fun GameToolBar(
     TopAppBar(
         title = {
             Text(
-                stringResource(
+                text = stringResource(
                     R.string.level_is,
                     gameState.difficulty.toString().capitalizeFirstLetter()
+                ),
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.SemiBold
                 )
             )
         }, actions = {
@@ -51,7 +55,12 @@ fun GameToolBar(
                 )
             }
 
-            Text(settings.duration.toFormat())
+            Text(
+                text = settings.duration.toFormat(),
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontWeight = FontWeight.Medium
+                )
+            )
 
             IconButton(onClick = showThemeDialog) {
                 Icon(
@@ -64,12 +73,13 @@ fun GameToolBar(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = stringResource(R.string.back),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
         }, colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            containerColor = MaterialTheme.colorScheme.background,
+            titleContentColor = MaterialTheme.colorScheme.onBackground,
+            actionIconContentColor = MaterialTheme.colorScheme.onBackground,
+            navigationIconContentColor = MaterialTheme.colorScheme.onBackground
         )
     )
 }

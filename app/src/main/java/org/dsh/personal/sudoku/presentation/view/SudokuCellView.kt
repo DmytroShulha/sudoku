@@ -12,6 +12,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,12 +34,11 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
-import org.dsh.personal.sudoku.domain.entity.SudokuCellNote
 import org.dsh.personal.sudoku.domain.entity.SudokuCellState
 import org.dsh.personal.sudoku.domain.entity.SudokuEffects
 
 private const val BASE_FONT_SIZE_SP = 24f
-private const val BOUNCE_PEAK_FONT_SIZE_SP = 32f
+private const val BOUNCE_PEAK_FONT_SIZE_SP = 30f
 
 @Composable
 fun SudokuCellView(
@@ -48,9 +48,8 @@ fun SudokuCellView(
     effects: SudokuEffects
 ) {
     val backgroundColor = when {
-        isSelected -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
-        cell.isHighlighted -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-
+        isSelected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
+        cell.isHighlighted -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
         else -> Color.Transparent
     }
 
@@ -58,21 +57,18 @@ fun SudokuCellView(
 
     var boxSize by remember { mutableStateOf(IntSize.Zero) }
 
-
-
     val animatedFontSize = remember { Animatable(BASE_FONT_SIZE_SP) }
 
-    // Trigger the bounce animation when isSelected becomes true
     LaunchedEffect(isSelected, cell.value) {
-        if (isSelected) {
+        if (isSelected && !cell.isEmpty()) {
             launch {
                 animatedFontSize.animateTo(
                     targetValue = BOUNCE_PEAK_FONT_SIZE_SP,
-                    animationSpec = tween(durationMillis = 150, easing = LinearOutSlowInEasing)
+                    animationSpec = tween(durationMillis = 100, easing = LinearOutSlowInEasing)
                 )
                 animatedFontSize.animateTo(
                     targetValue = BASE_FONT_SIZE_SP,
-                    animationSpec = tween(durationMillis = 200, easing = FastOutLinearInEasing)
+                    animationSpec = tween(durationMillis = 150, easing = FastOutLinearInEasing)
                 )
             }
         } else {
@@ -94,19 +90,23 @@ fun SudokuCellView(
         contentAlignment = Alignment.Center
     ) {
         if (!cell.isEmpty()) {
-
             val textColor = when {
                 cell.isError -> MaterialTheme.colorScheme.error
-                cell.isClue -> MaterialTheme.colorScheme.primary
-                else -> MaterialTheme.colorScheme.secondary
+                cell.isClue -> MaterialTheme.colorScheme.onSurface // Clues are neutral
+                else -> MaterialTheme.colorScheme.primary // User input is accented
             }
-            val fontWeight = if (cell.isClue) FontWeight.Bold else FontWeight.Normal
-
+            
+            val fontWeight = if (cell.isClue) FontWeight.Bold else FontWeight.Medium
+            
             Text(
                 text = cell.value.toString(),
                 color = textColor,
-                fontWeight = fontWeight,
-                fontSize = animatedFontSize.value.sp
+                fontSize = animatedFontSize.value.sp,
+                style = LocalTextStyle.current.copy(
+                    fontWeight = fontWeight,
+                    // Remove the stroke for a cleaner enterprise look
+                    shadow = null
+                )
             )
         } else if (cell.notes.isNotEmpty()) {
             NotesGrid(cell.notes, boxSize)
@@ -129,8 +129,6 @@ private fun PerformEffects(
                 audioManager.playSoundEffect(AudioManager.FX_KEYPRESS_INVALID)
             }
             if (effects.useHaptic) {
-                haptic.performHapticFeedback(HapticFeedbackType.Reject)
-                haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                 haptic.performHapticFeedback(HapticFeedbackType.Reject)
             }
         }
@@ -168,136 +166,3 @@ fun SudokuCellViewPreviewUserValue() {
         effects = SudokuEffects()
     )
 }
-
-@Preview(showBackground = true)
-@Composable
-fun SudokuCellViewPreviewError() {
-    SudokuCellView(
-        cell = SudokuCellState(
-            id = SyncStateContract.Constants.DATA,
-            value = 7,
-            isClue = false,
-            isError = true
-        ),
-        isSelected = false,
-        onClick = {},
-        effects = SudokuEffects()
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun SudokuCellViewPreviewNotes() {
-    SudokuCellView(
-        cell = SudokuCellState(
-            id = SyncStateContract.Constants.DATA,
-            value = 0,
-            isClue = false,
-            notes = setOf(SudokuCellNote(1), SudokuCellNote(2), SudokuCellNote(3))
-        ),
-        isSelected = false,
-        onClick = {},
-        effects = SudokuEffects()
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun SudokuCellViewPreviewEmptySelected() {
-    SudokuCellView(
-        cell = SudokuCellState(id = SyncStateContract.Constants.DATA, value = 0, isClue = false),
-        isSelected = true,
-        onClick = {},
-        effects = SudokuEffects()
-    )
-}
-
-// Preview for SudokuCellView
-@Preview(
-    showBackground = true,
-    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
-            or android.content.res.Configuration.UI_MODE_TYPE_NORMAL
-)
-@Composable
-fun SudokuCellViewPreviewClueDark() {
-    SudokuCellView(
-        cell = SudokuCellState(id = SyncStateContract.Constants.DATA, value = 5, isClue = true),
-        isSelected = false,
-        onClick = {},
-        effects = SudokuEffects()
-    )
-}
-
-@Preview(
-    showBackground = true,
-    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
-            or android.content.res.Configuration.UI_MODE_TYPE_NORMAL
-)
-@Composable
-fun SudokuCellViewPreviewUserValueDark() {
-    SudokuCellView(
-        cell = SudokuCellState(id = SyncStateContract.Constants.DATA, value = 3, isClue = false),
-        isSelected = true,
-        onClick = {},
-        effects = SudokuEffects()
-    )
-}
-
-@Preview(
-    showBackground = true,
-    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
-            or android.content.res.Configuration.UI_MODE_TYPE_NORMAL
-)
-@Composable
-@Suppress("MagicNumber")
-fun SudokuCellViewPreviewErrorDark() {
-    SudokuCellView(
-        cell = SudokuCellState(
-            id = SyncStateContract.Constants.DATA,
-            value = 7,
-            isClue = false,
-            isError = true
-        ),
-        isSelected = false,
-        onClick = {},
-        effects = SudokuEffects()
-    )
-}
-
-@Preview(
-    showBackground = true,
-    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
-            or android.content.res.Configuration.UI_MODE_TYPE_NORMAL
-)
-@Composable
-@Suppress("MagicNumber")
-fun SudokuCellViewPreviewNotesDark() {
-    SudokuCellView(
-        cell = SudokuCellState(
-            id = SyncStateContract.Constants.DATA,
-            value = 0,
-            isClue = false,
-            notes = setOf(SudokuCellNote(1), SudokuCellNote(4), SudokuCellNote(6))
-        ),
-        isSelected = false,
-        onClick = {},
-        effects = SudokuEffects()
-    )
-}
-
-@Preview(
-    showBackground = true,
-    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
-            or android.content.res.Configuration.UI_MODE_TYPE_NORMAL
-)
-@Composable
-@Suppress("MagicNumber")
-fun SudokuCellViewPreviewEmptySelectedDark() {
-    SudokuCellView(
-        cell = SudokuCellState(id = SyncStateContract.Constants.DATA, value = 0, isClue = false),
-        isSelected = true,
-        onClick = {},
-        effects = SudokuEffects()
-    )
-}
-

@@ -5,20 +5,22 @@ import androidx.annotation.StringRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Undo
 import androidx.compose.material.icons.filled.EditNote
@@ -40,9 +42,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -83,11 +87,11 @@ fun SudokuNumberInputRow(
             onNumberClick = data.onNumberClick
         )
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(16.dp))
 
         Row(
-            modifier = modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = modifier.fillMaxWidth().padding(horizontal = 4.dp),
+            horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
             data.numbers.forEach { numberState ->
@@ -108,12 +112,13 @@ private fun SudokuGameButtonsRow(
     onNumberClick: (Int) -> Unit
 ) {
     Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
+        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
 
         SudokuFunctionalButton(
+            modifier = Modifier.weight(1f),
             colors = currentInputMode.buttonColorsColors(),
             buttonClick = notesClick,
             data = SudokuFunctionalButtonData(
@@ -124,6 +129,7 @@ private fun SudokuGameButtonsRow(
         )
 
         SudokuFunctionalButton(
+            modifier = Modifier.weight(1f),
             data = SudokuFunctionalButtonData(
                 icon = Icons.AutoMirrored.Outlined.Undo,
                 contentDescription = R.string.undo,
@@ -133,6 +139,7 @@ private fun SudokuGameButtonsRow(
         )
 
         SudokuFunctionalButton(
+            modifier = Modifier.weight(1f),
             data = SudokuFunctionalButtonData(
                 icon = Icons.Outlined.Clear,
                 contentDescription = R.string.clear_content_desc,
@@ -150,17 +157,17 @@ fun InputMode.buttonNoteIcon() = when (this) {
 }
 
 @Composable
-fun InputMode.buttonColorsColors() = ButtonDefaults.buttonColors(
-    containerColor = if (this == InputMode.NOTES) {
-        MaterialTheme.colorScheme.primaryContainer
-    } else {
-        MaterialTheme.colorScheme.primary
-    }, contentColor = if (this == InputMode.NOTES) {
-        MaterialTheme.colorScheme.onPrimaryContainer
-    } else {
-        MaterialTheme.colorScheme.onPrimary
-    }
-)
+fun InputMode.buttonColorsColors() = if (this == InputMode.NOTES) {
+    ButtonDefaults.buttonColors(
+        containerColor = MaterialTheme.colorScheme.primary,
+        contentColor = MaterialTheme.colorScheme.onPrimary
+    )
+} else {
+    ButtonDefaults.buttonColors(
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+}
 
 
 data class SudokuFunctionalButtonData(
@@ -172,25 +179,40 @@ data class SudokuFunctionalButtonData(
 @Composable
 private fun SudokuFunctionalButton(
     data: SudokuFunctionalButtonData,
-    colors: ButtonColors = ButtonDefaults.buttonColors(),
+    modifier: Modifier = Modifier,
+    colors: ButtonColors = ButtonDefaults.buttonColors(
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+    ),
     buttonClick: () -> Unit,
 ) {
     Button(
-        onClick = buttonClick, colors = colors
+        onClick = buttonClick,
+        modifier = modifier.height(48.dp),
+        colors = colors,
+        shape = CircleShape,
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
             Icon(
                 imageVector = data.icon,
-                contentDescription = stringResource(data.contentDescription)
+                contentDescription = stringResource(data.contentDescription),
+                modifier = Modifier.size(20.dp)
             )
-            Spacer(Modifier.width(4.dp))
-            Text(stringResource(data.text))
+            Spacer(Modifier.width(6.dp))
+            Text(
+                text = stringResource(data.text),
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
+            )
         }
     }
 }
 
 @Composable
-fun NumberInputButton(
+fun RowScope.NumberInputButton(
     numberState: SudokuNumberButtonState, onNumberClick: (Int) -> Unit
 ) {
 
@@ -203,54 +225,86 @@ fun NumberInputButton(
 
     val textColor by animateColorAsState(
         targetValue = if (numberState.isPossible) {
-            MaterialTheme.colorScheme.onPrimary
+            MaterialTheme.colorScheme.onSurface
         } else {
-            MaterialTheme.colorScheme.onSecondary
+            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
         }, animationSpec = tween(durationMillis = ANIMATION_DURATION_300)
     )
     val boxColor by animateColorAsState(
         targetValue = if (numberState.isPossible) {
-            MaterialTheme.colorScheme.primary
+            MaterialTheme.colorScheme.surfaceVariant
         } else {
-            MaterialTheme.colorScheme.secondary
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
         }, animationSpec = tween(durationMillis = ANIMATION_DURATION_300)
     )
 
 
-    val colorOutline = MaterialTheme.colorScheme.outline
-    val colorOutlineVariant = MaterialTheme.colorScheme.outlineVariant
+    val colorPrimary = MaterialTheme.colorScheme.primary
+    val colorOnSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
     val countColor by animateColorAsState(
-        targetValue = if (countChanged) colorOutline else colorOutlineVariant,
+        targetValue = if (countChanged) colorPrimary else colorOnSurfaceVariant,
         animationSpec = keyframes {
             durationMillis = ANIMATION_DURATION_200
-            colorOutline at 0
-            colorOutlineVariant at ANIMATION_DURATION_200
+            colorPrimary at 0
+            colorOnSurfaceVariant at ANIMATION_DURATION_200
         })
 
     Box(
         modifier = Modifier
-            .size(40.dp)
-            .clip(RoundedCornerShape(4.dp))
-            .background(boxColor)
-            .border(1.dp, Color.Black, RoundedCornerShape(4.dp))
-            .clickable { onNumberClick(numberState.number) }, contentAlignment = Alignment.Center
+            .weight(1f),
+        contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = numberState.number.toString(),
-            fontSize = 24.sp,
-            textAlign = TextAlign.Center,
-            color = textColor
-        )
-
-        Text(
-            text = numberState.availableCount.toString(),
-            fontSize = 10.sp,
-            color = countColor,
-            lineHeight = 10.sp,
+        Surface(
             modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(bottom = 2.dp, end = 3.dp)
-        )
+                .size(36.dp)
+                .clip(CircleShape)
+                .clickable { onNumberClick(numberState.number) },
+            shape = CircleShape,
+            color = boxColor,
+            tonalElevation = 1.dp
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Text(
+                    text = numberState.number.toString(),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center,
+                    color = textColor
+                )
+            }
+        }
+
+        if (numberState.availableCount > 0) {
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .offset(x = 4.dp, y = (-4).dp)
+                    .size(18.dp),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 2.dp,
+                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    @Suppress("DEPRECATION")
+                    Text(
+                        text = numberState.availableCount.toString(),
+                        style = TextStyle(
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = countColor,
+                            textAlign = TextAlign.Center,
+                            platformStyle = PlatformTextStyle(
+                                includeFontPadding = false
+                            )
+                        )
+                    )
+                }
+            }
+        }
     }
 
 }
@@ -281,38 +335,6 @@ fun PreviewNumberInputRow() {
                     undoClick = {},
                     notesClick = {},
                     currentInputMode = InputMode.VALUE
-                )
-            )
-        }
-    }
-}
-
-@Preview(
-    showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES
-)
-@Composable
-@Suppress("MagicNumber")
-fun PreviewNumberInputRowEdit() {
-    PersonalTheme {
-        val sampleNumbers = listOf(
-            SudokuNumberButtonState(1, true, 5),
-            SudokuNumberButtonState(2, false, 0),
-            SudokuNumberButtonState(3, true, 2),
-            SudokuNumberButtonState(4, true, 8),
-            SudokuNumberButtonState(5, true, 1),
-            SudokuNumberButtonState(6, true, 0),
-            SudokuNumberButtonState(7, true, 3),
-            SudokuNumberButtonState(8, true, 6),
-            SudokuNumberButtonState(9, true, 4)
-        )
-        Surface {
-            SudokuNumberInputRow(
-                data = SudokuNumberInputRowData(
-                    numbers = sampleNumbers,
-                    onNumberClick = {},
-                    undoClick = {},
-                    notesClick = {},
-                    currentInputMode = InputMode.NOTES
                 )
             )
         }
