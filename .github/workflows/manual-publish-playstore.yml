@@ -43,7 +43,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run [unit tests][detekt][Android Lint][jacoco] (Release)
-        run: ./gradlew lintRelease detekt testReleaseUnitTest jacocoTestReport
+        run: ./gradlew lintRelease detekt testDebugUnitTest jacocoTestReport
 
       - name: Build and Sign Release AAB
         env:
