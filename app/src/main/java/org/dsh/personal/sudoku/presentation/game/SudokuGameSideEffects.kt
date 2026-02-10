@@ -19,7 +19,7 @@ fun SudokuGameSideEffects(
     val gameState = uiState.game
     LaunchedEffect(gameState.isSolved) {
         if (gameState.isSolved) {
-            navigator.goBack()
+            navigator.goBackToRoot()
             navigator.navigate(SudokuRoutes.Success)
         }
     }

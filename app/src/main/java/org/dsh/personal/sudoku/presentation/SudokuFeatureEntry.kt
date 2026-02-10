@@ -204,8 +204,7 @@ object SudokuFeatureEntry {
                         showNewGame = true
                     },
                     onMainMenuClicked = {
-                        navigator.goBack()
-                        navigator.goBack()
+                        navigator.goBackToRoot()
                     },
                     onShareClicked = null,
                 )
@@ -236,8 +235,7 @@ object SudokuFeatureEntry {
                     }.invokeOnCompletion {
                         if (!sheetState.isVisible) {
                             onDismiss()
-                            navigator.goBack()
-                            navigator.goBack()
+                            navigator.goBackToRoot()
                             navigator.navigate(SudokuRoutes.GameScreen(selectedDifficulty.name))
 
                         }

@@ -56,8 +56,8 @@ class SudokuGameRepository(
                     timeFinished = System.currentTimeMillis()
                 )
             )
-            deleteGame()
         }
+        deleteGame()
     }
 
     override suspend fun clearStatistic() = withContext(ioDispatcher) { entryDao.clearStatistic() }

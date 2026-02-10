@@ -22,8 +22,8 @@ class SuccessViewModel (
     init {
         viewModelScope.launch {
             currentGameHandler.loadGame()?.let { game->
-                _gameState.update { game }
                 storeStatistic()
+                _gameState.update { game }
             }
         }
     }
