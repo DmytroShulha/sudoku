@@ -20,7 +20,7 @@ fun SudokuGameSideEffects(
 ) {
     LaunchedEffect(gameState.isSolved) {
         if (gameState.isSolved) {
-            navigator.goBack()
+            navigator.goBackToRoot()
             navigator.navigate(SudokuRoutes.Success)
         }
     }
