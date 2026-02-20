@@ -1,6 +1,5 @@
 package org.dsh.personal.sudoku.presentation.view
 
-import android.provider.SyncStateContract
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -30,23 +29,22 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.dsh.personal.sudoku.domain.BLOCK_SIZE
 import org.dsh.personal.sudoku.domain.ROW_SIZE
-import org.dsh.personal.sudoku.domain.entity.SudokuCellNote
 import org.dsh.personal.sudoku.domain.entity.SudokuCellState
 import org.dsh.personal.sudoku.domain.entity.SudokuEffects
 import org.dsh.personal.sudoku.presentation.SudokuViewModel
 import org.dsh.personal.sudoku.theme.PersonalTheme
+import org.dsh.personal.sudoku.utility.initializeEmptyGame
 
 
 @Composable
 fun SudokuBoardView(
-    board: List<List<SudokuCellState>>,
     selectedCellPosition: Pair<Int, Int>?, // (row, col)
     onCellClick: (row: Int, col: Int) -> Unit,
     modifier: Modifier = Modifier,
-    settings: SudokuViewModel.SudokuSettings
+    uiState: SudokuViewModel.SudokuUiState
 ) {
     val thickLineDp = 2.dp
-    val effects = remember(settings.effects) { settings.effects }
+    val effects = remember(uiState.effects) { uiState.effects }
 
     // One UI 8.5 Container Style: Rounded Card with soft shadow
     Surface(
@@ -66,7 +64,7 @@ fun SudokuBoardView(
         ) {
             Column(Modifier.fillMaxSize()) {
                 SudokuBoardRow(
-                    board,
+                    uiState.game.boardState.grid,
                     selectedCellPosition,
                     onCellClick,
                     effects,
@@ -196,38 +194,13 @@ fun HorizontalDivider(
 @Composable
 @Suppress("MagicNumber")
 private fun SudokuBoardPreviewContent() {
-    // Create a sample board for preview
-    val sampleBoard = List(9) { rowIndex ->
-        List(9) { colIndex ->
-            val value = when {
-                rowIndex == 0 && colIndex == 0 -> 5 // Clue
-                rowIndex == 1 && colIndex == 1 -> 3 // User entered
-                rowIndex == 2 && colIndex == 2 -> 8 // Clue with error (for testing)
-                rowIndex == 3 && colIndex == 3 -> 0 // Empty with notes
-                else -> 0 // Empty
-            }
-            val isClue = (rowIndex == 0 && colIndex == 0) || (rowIndex == 2 && colIndex == 2)
-            val notes = if (rowIndex == 3 && colIndex == 3) setOf(
-                SudokuCellNote(1), SudokuCellNote(4), SudokuCellNote(6)
-            ) else emptySet()
-            val isError = rowIndex == 2 && colIndex == 2 // Example error
-
-            SudokuCellState(
-                id = SyncStateContract.Constants.DATA,
-                value = value,
-                isClue = isClue,
-                notes = notes,
-                isError = isError
-            )
-        }
-    }
 
     Surface {
         Box(Modifier.padding(16.dp)) { // Add some padding around the board for the preview
             SudokuBoardView(
-                board = sampleBoard, selectedCellPosition = Pair(1, 1), // Example selected cell
+                selectedCellPosition = Pair(1, 1), // Example selected cell
                 onCellClick = { _, _ ->
-                }, settings = SudokuViewModel.SudokuSettings()
+                }, uiState = SudokuViewModel.SudokuUiState(game = initializeEmptyGame())
             )
         }
     }

@@ -16,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import org.dsh.personal.sudoku.R
-import org.dsh.personal.sudoku.domain.entity.SudokuGameState
 import org.dsh.personal.sudoku.presentation.SudokuViewModel
 import org.dsh.personal.sudoku.presentation.capitalizeFirstLetter
 import java.util.Locale
@@ -27,8 +26,7 @@ private const val SecondsInMinute = 60
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun GameToolBar(
-    gameState: SudokuGameState,
-    settings: SudokuViewModel.SudokuSettings,
+    uiState: SudokuViewModel.SudokuUiState,
     showThemeDialog: () -> Unit,
     onPauseResumeClick: () -> Unit,
     popBack: () -> Unit
@@ -38,7 +36,7 @@ fun GameToolBar(
             Text(
                 text = stringResource(
                     R.string.level_is,
-                    gameState.difficulty.toString().capitalizeFirstLetter()
+                    uiState.game.difficulty.toString().capitalizeFirstLetter()
                 ),
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.SemiBold
@@ -47,7 +45,7 @@ fun GameToolBar(
         }, actions = {
             IconButton(onClick = onPauseResumeClick ) {
                 Icon(
-                    imageVector = if (settings.isPaused) {
+                    imageVector = if (uiState.isPaused) {
                         Icons.TwoTone.PlayArrow
                     } else {
                         Icons.TwoTone.Pause
@@ -56,7 +54,7 @@ fun GameToolBar(
             }
 
             Text(
-                text = settings.duration.toFormat(),
+                text = uiState.game.duration.toFormat(),
                 style = MaterialTheme.typography.bodyLarge.copy(
                     fontWeight = FontWeight.Medium
                 )

@@ -16,7 +16,6 @@ import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,17 +59,19 @@ object SudokuFeatureEntry {
     @Composable
     fun SudokuMainMenuScreen(navigator: Navigator) {
         val viewModel: SudokuViewModel = koinViewModel()
-        val settings by viewModel.sudokuSettings.collectAsStateWithLifecycle()
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         SudokuMainMenu(
             data = SudokuMainMenuData(
-                hasContinueGame = settings.hasContinueGame,
-            onStartGame = { difficulty ->
-                navigator.navigate(SudokuRoutes.GameScreen(difficulty.name))
-            },
-            onResumeGame = { navigator.navigate(SudokuRoutes.GameScreen(SudokuRoutes.PARAM_CONTINUE)) },
-            onAboutClick = { navigator.navigate(SudokuRoutes.About) },
-            onSettingsClick = { navigator.navigate(SudokuRoutes.Settings) },
-            onStatisticClick = { navigator.navigate(SudokuRoutes.Statistic) }))
+                hasContinueGame = uiState.hasContinueGame,
+                onStartGame = { difficulty ->
+                    navigator.navigate(SudokuRoutes.GameScreen(difficulty.name))
+                },
+                onResumeGame = { navigator.navigate(SudokuRoutes.GameScreen(SudokuRoutes.PARAM_CONTINUE)) },
+                onAboutClick = { navigator.navigate(SudokuRoutes.About) },
+                onSettingsClick = { navigator.navigate(SudokuRoutes.Settings) },
+                onStatisticClick = { navigator.navigate(SudokuRoutes.Statistic) }
+            )
+        )
     }
 
     @Composable
@@ -80,19 +81,19 @@ object SudokuFeatureEntry {
         windowSizeClass: WindowSizeClass,
     ) {
         val viewModel: SudokuViewModel = koinViewModel()
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
         LaunchedEffect(Unit) {
             if (difficultyString == SudokuRoutes.PARAM_CONTINUE) {
                 viewModel.handleIntent(SudokuViewModel.SudokuIntent.ResumeGame)
             } else {
                 val difficulty = difficultyString?.let { Difficulty.valueOf(it) } ?: Difficulty.EASY
-                viewModel.startNewGame(difficulty)
+                viewModel.handleIntent(SudokuViewModel.SudokuIntent.StartNewGame(difficulty))
             }
         }
 
-        val settings by viewModel.sudokuSettings.collectAsState()
-        val isDark = if (settings.theme.useSystem) isSystemInDarkTheme() else settings.theme.isDark
-        val useMaterial3Colors = settings.theme.isDynamic
+        val isDark = if (uiState.theme.useSystem) isSystemInDarkTheme() else uiState.theme.isDark
+        val useMaterial3Colors = uiState.theme.isDynamic
         val view = LocalView.current
 
         SideEffect {
@@ -102,19 +103,17 @@ object SudokuFeatureEntry {
         }
 
         var showThemeDialog by remember { mutableStateOf(false) }
-        val gameState by viewModel.gameState.collectAsState()
-        SudokuGameSideEffects(gameState, navigator, viewModel)
+        SudokuGameSideEffects(uiState, navigator, viewModel)
 
         PersonalTheme(isDark, useMaterial3Colors) {
             Scaffold(
                 topBar = {
                     GameToolBar(
-                        gameState = gameState,
-                        settings = settings,
+                        uiState = uiState,
                         popBack = { navigator.goBack() },
                         showThemeDialog = { showThemeDialog = true },
                         onPauseResumeClick = {
-                            if (settings.isPaused) {
+                            if (uiState.isPaused) {
                                 viewModel.handleIntent(SudokuViewModel.SudokuIntent.ResumeGameTimer)
                             } else {
                                 viewModel.handleIntent(SudokuViewModel.SudokuIntent.PauseGameTimer)
@@ -125,21 +124,22 @@ object SudokuFeatureEntry {
                 SudokuGame(
                     modifier = Modifier.padding(padding),
                     windowSizeClass = windowSizeClass,
-                    gameState = gameState,
-                    sudokuSettings = settings,
+                    uiState = uiState,
                     callbacks = SudokuGameCallbacks(
-                        onCellClick = viewModel::selectCell,
-                        onNumberClick = viewModel::inputNumber2,
-                        undoClick = viewModel::undo,
-                        notesClick = viewModel::toggleInputMode,
-                        resumeGame = { viewModel.handleIntent(SudokuViewModel.SudokuIntent.ResumeGameTimer) }))
+                        onCellClick = { r, c -> viewModel.handleIntent(SudokuViewModel.SudokuIntent.SelectCell(r, c)) },
+                        onNumberClick = { n -> viewModel.handleIntent(SudokuViewModel.SudokuIntent.InputNumber(n)) },
+                        undoClick = { viewModel.handleIntent(SudokuViewModel.SudokuIntent.Undo) },
+                        notesClick = { viewModel.handleIntent(SudokuViewModel.SudokuIntent.ToggleInputMode) },
+                        resumeGame = { viewModel.handleIntent(SudokuViewModel.SudokuIntent.ResumeGameTimer) }
+                    )
+                )
             }
 
             if (showThemeDialog) {
                 ThemeSettingsDialog(
-                    currentTheme = settings.theme, // Pass the current theme state
-                    onThemeChange = viewModel::updateAndSaveTheme,
-                    onDismissRequest = { showThemeDialog = false } // Dismiss the dialog
+                    currentTheme = uiState.theme,
+                    onThemeChange = { theme -> viewModel.handleIntent(SudokuViewModel.SudokuIntent.UpdateTheme(theme)) },
+                    onDismissRequest = { showThemeDialog = false }
                 )
             }
         }
@@ -170,12 +170,12 @@ object SudokuFeatureEntry {
     @Composable
     fun SudokuSettings(navigator: Navigator) {
         val viewModel = koinViewModel<SudokuViewModel>()
-        val settings by viewModel.sudokuSettings.collectAsStateWithLifecycle()
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
         SudokuSettingsScreen(
-            settings = settings,
+            uiState = uiState,
             onBackClick = navigator::goBack,
-            onSaveSettings = viewModel::saveSettings,
+            onSaveSettings = { theme, effects -> viewModel.handleIntent(SudokuViewModel.SudokuIntent.SaveSettings(theme, effects)) },
         )
     }
 

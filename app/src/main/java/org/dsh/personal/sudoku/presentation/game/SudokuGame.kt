@@ -23,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.dsh.personal.sudoku.R
-import org.dsh.personal.sudoku.domain.entity.SudokuGameState
 import org.dsh.personal.sudoku.presentation.SudokuViewModel
 import org.dsh.personal.sudoku.presentation.view.Dimens
 import org.dsh.personal.sudoku.presentation.view.SudokuBoardView
@@ -44,29 +43,28 @@ data class SudokuGameCallbacks(
 @Composable
 fun SudokuGame(
     modifier: Modifier = Modifier,
-    gameState: SudokuGameState,
-    sudokuSettings: SudokuViewModel.SudokuSettings,
+    uiState: SudokuViewModel.SudokuUiState,
     callbacks: SudokuGameCallbacks,
     windowSizeClass: WindowSizeClass,
 ) {
     val isWideDisplay = windowSizeClass.widthSizeClass >= WindowWidthSizeClass.Expanded
 
     if (isWideDisplay) {
-        TabletSudokuGame(modifier, sudokuSettings, callbacks, gameState)
+        TabletSudokuGame(modifier, uiState, callbacks)
     } else {
-        PhoneSudokuGame(modifier, sudokuSettings, callbacks, gameState)
+        PhoneSudokuGame(modifier, uiState, callbacks)
     }
 }
 
 @Composable
 private fun PhoneSudokuGame(
     modifier: Modifier,
-    sudokuSettings: SudokuViewModel.SudokuSettings,
-    callbacks: SudokuGameCallbacks,
-    gameState: SudokuGameState
+    uiState: SudokuViewModel.SudokuUiState,
+    callbacks: SudokuGameCallbacks
 ) {
+    val gameState = uiState.game
     Column(modifier = modifier) {
-        if (sudokuSettings.isPaused) {
+        if (uiState.isPaused) {
             Box(
                 modifier = Modifier.fillMaxSize()
             ) {
@@ -85,10 +83,9 @@ private fun PhoneSudokuGame(
                 modifier = Modifier.padding(
                     top = Dimens.Medium, start = Dimens.Small, end = Dimens.Small
                 ),
-                board = gameState.boardState.grid,
                 selectedCellPosition = gameState.selectedCell,
                 onCellClick = callbacks.onCellClick,
-                settings = sudokuSettings,
+                uiState = uiState,
             )
             Spacer(Modifier.height(Dimens.Medium))
 
@@ -108,19 +105,18 @@ private fun PhoneSudokuGame(
 @Composable
 private fun TabletSudokuGame(
     modifier: Modifier,
-    sudokuSettings: SudokuViewModel.SudokuSettings,
-    callbacks: SudokuGameCallbacks,
-    gameState: SudokuGameState
+    uiState: SudokuViewModel.SudokuUiState,
+    callbacks: SudokuGameCallbacks
 ) {
+    val gameState = uiState.game
     Row(modifier = modifier.fillMaxSize()) {
-        // Sudoku Board (takes more space)
         Box(
             modifier = Modifier
-                .weight(WEIGHT06) // Take available space
-                .aspectRatio(1f, true) // Keep square aspect ratio for the board
-                .padding(Dimens.Large) // Add padding
+                .weight(WEIGHT06)
+                .aspectRatio(1f, true)
+                .padding(Dimens.Large)
         ) {
-            if (sudokuSettings.isPaused) {
+            if (uiState.isPaused) {
                 Box(
                     modifier = Modifier.fillMaxSize()
                 ) {
@@ -136,24 +132,22 @@ private fun TabletSudokuGame(
                 }
             } else {
                 SudokuBoardView(
-                    board = gameState.boardState.grid,
                     selectedCellPosition = gameState.selectedCell,
                     onCellClick = callbacks.onCellClick,
-                    settings = sudokuSettings,
-                    modifier = Modifier.fillMaxSize() // Fill the Box
+                    uiState = uiState,
+                    modifier = Modifier.fillMaxSize()
                 )
             }
         }
 
-        // Number Input and Controls (aligned to the side)
         Column(
             modifier = Modifier
                 .weight(WEIGHT04)
-                .width(IntrinsicSize.Min) // Take minimum width
+                .width(IntrinsicSize.Min)
                 .padding(Dimens.Large)
-                .align(Alignment.CenterVertically) // Vertically center the column
+                .align(Alignment.CenterVertically)
         ) {
-            if (!sudokuSettings.isPaused) {
+            if (!uiState.isPaused) {
                 SudokuNumberInputRow(
                     data = SudokuNumberInputRowData(
                         numbers = gameState.availableNumbers,
@@ -164,7 +158,6 @@ private fun TabletSudokuGame(
                     )
                 )
                 Spacer(Modifier.height(Dimens.Large))
-                // Add other controls or information here for wider screens
             }
         }
     }

@@ -5,19 +5,18 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import org.dsh.personal.sudoku.SudokuRoutes
 import org.dsh.personal.sudoku.core.Navigator
-import org.dsh.personal.sudoku.domain.entity.SudokuGameState
 import org.dsh.personal.sudoku.presentation.SudokuViewModel
 
 @Composable
 fun SudokuGameSideEffects(
-    gameState: SudokuGameState,
+    uiState: SudokuViewModel.SudokuUiState,
     navigator: Navigator,
     viewModel: SudokuViewModel
 ) {
+    val gameState = uiState.game
     LaunchedEffect(gameState.isSolved) {
         if (gameState.isSolved) {
             navigator.goBack()
@@ -25,17 +24,12 @@ fun SudokuGameSideEffects(
         }
     }
 
-    val lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_PAUSE -> {
-                    viewModel.handleIntent(SudokuViewModel.SudokuIntent.PauseGameTimer)
-                }
-
-                else -> { /*Do nothing */
-                }
+            if (event == Lifecycle.Event.ON_PAUSE) {
+                viewModel.handleIntent(SudokuViewModel.SudokuIntent.PauseGameTimer)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)

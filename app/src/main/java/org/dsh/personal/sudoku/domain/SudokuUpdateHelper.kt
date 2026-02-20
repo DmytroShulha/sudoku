@@ -31,7 +31,7 @@ data class ProcessNoteData(
     val col: Int,
     val number: Int,
     val cellToModify: SudokuCellState,
-    val newGrid: SnapshotStateList<SnapshotStateList<SudokuCellState>>,
+    val newGrid: MutableList<MutableList<SudokuCellState>>,
     val validateBoard: suspend (
         grid: List<List<SudokuCellState>>, cellNumber: Int, cellRow: Int, cellCol: Int
     ) -> Unit,

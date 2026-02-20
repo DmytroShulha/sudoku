@@ -81,4 +81,6 @@
     <string name="play_store_game_url">https://play.google.com/store/apps/details?id=org.dsh.personal.sudoku</string>
     <string name="play_store_url">https://play.google.com/store/apps/developer?id=Dmytro+Shulha</string>
     <string name="more_games">More Games</string>
+    <string name="fill_notes">Auto Notes</string>
+    <string name="fill_cell">Fill</string>
 </resources>

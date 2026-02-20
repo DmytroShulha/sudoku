@@ -42,16 +42,17 @@ import org.dsh.personal.sudoku.domain.entity.SudokuBoardTheme
 import org.dsh.personal.sudoku.domain.entity.SudokuEffects
 import org.dsh.personal.sudoku.presentation.SudokuViewModel
 import org.dsh.personal.sudoku.presentation.view.Dimens
+import org.dsh.personal.sudoku.utility.initializeEmptyGame
 
 @Composable
 fun SudokuSettingsScreen(
-    settings: SudokuViewModel.SudokuSettings,
+    uiState: SudokuViewModel.SudokuUiState,
     onBackClick: () -> Unit,
-    onSaveSettings: (SudokuViewModel.SudokuSettings) -> Unit,
+    onSaveSettings: (SudokuBoardTheme, SudokuEffects) -> Unit,
 ) {
 
-    val currentTheme = remember(settings.theme, settings) { settings.theme }
-    val currentEffects = remember(settings.effects, settings) { settings.effects }
+    val currentTheme = uiState.theme
+    val currentEffects = uiState.effects
 
     var useSystemSetting by remember(currentTheme) { mutableStateOf(currentTheme.useSystem) }
     var isDarkSetting by remember(currentTheme) { mutableStateOf(currentTheme.isDark) }
@@ -68,7 +69,7 @@ fun SudokuSettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            contentPadding = PaddingValues(Dimens.Large), // Apply overall padding here
+            contentPadding = PaddingValues(Dimens.Large),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Dimens.Large)
         ) {
@@ -90,15 +91,14 @@ fun SudokuSettingsScreen(
 
             itemButtons {
                 onSaveSettings(
-                    SudokuViewModel.SudokuSettings(
-                        theme = SudokuBoardTheme(
-                            useSystem = useSystemSetting,
-                            isDark = isDarkSetting,
-                            isDynamic = isDynamicSetting
-                        ), effects = SudokuEffects(
-                            useHaptic = useHapticFeedback,
-                            useSounds = useSoundEffects,
-                        )
+                    SudokuBoardTheme(
+                        useSystem = useSystemSetting,
+                        isDark = isDarkSetting,
+                        isDynamic = isDynamicSetting
+                    ),
+                    SudokuEffects(
+                        useHaptic = useHapticFeedback,
+                        useSounds = useSoundEffects,
                     )
                 )
                 onBackClick()
@@ -244,14 +244,15 @@ fun SettingSwitcher(
 @Preview(showBackground = true)
 @Composable
 fun PreviewSudokuSettingsScreen() {
-    val dummySettings = SudokuViewModel.SudokuSettings(
+    val dummyState = SudokuViewModel.SudokuUiState(
+        game = initializeEmptyGame(),
         theme = SudokuBoardTheme(useSystem = false, isDark = true, isDynamic = true),
         effects = SudokuEffects(useHaptic = true, useSounds = true)
     )
 
     SudokuSettingsScreen(
-        settings = dummySettings,
+        uiState = dummyState,
         onBackClick = { },
-        onSaveSettings = { },
+        onSaveSettings = { _, _ -> },
     )
 }

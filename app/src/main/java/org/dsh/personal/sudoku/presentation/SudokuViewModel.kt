@@ -1,13 +1,14 @@
 package org.dsh.personal.sudoku.presentation
 
-import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -22,7 +23,6 @@ import org.dsh.personal.sudoku.domain.initializeNewGame
 import org.dsh.personal.sudoku.domain.processNote
 import org.dsh.personal.sudoku.presentation.game.ThemeSettingsManager
 import org.dsh.personal.sudoku.utility.initializeEmptyGame
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 class SudokuViewModel(
@@ -31,127 +31,112 @@ class SudokuViewModel(
 ) : ViewModel() {
 
     private val _gameState = MutableStateFlow(initializeEmptyGame())
-    val gameState: StateFlow<SudokuGameState> = _gameState.asStateFlow()
+    private val _timerState = MutableStateFlow(TimerState.Stopped)
+    private val _isPaused = MutableStateFlow(false)
 
-    private val _sudokuSettings = MutableStateFlow(SudokuSettings())
-    val sudokuSettings: StateFlow<SudokuSettings> = _sudokuSettings.asStateFlow()
+    val uiState: StateFlow<SudokuUiState> = combine(
+        combine(_gameState, _timerState, _isPaused) { game, timer, paused -> 
+            Triple(game, timer, paused) 
+        },
+        themeSettingsManager.themeSettingsFlow,
+        themeSettingsManager.effectsFlow,
+        sudokuHandler.currentGameHandler.hasGameFlow()
+    ) { (game, timer, paused), theme, effects, hasContinueGame ->
+        SudokuUiState(
+            game = game,
+            timerState = timer,
+            isPaused = paused,
+            theme = theme,
+            effects = effects,
+            hasContinueGame = hasContinueGame
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = SudokuUiState(game = _gameState.value)
+    )
 
     private var timerJob: Job? = null
 
-    init {
-        viewModelScope.launch {
-            themeSettingsManager.themeSettingsFlow.collect { themeSettings ->
-                _sudokuSettings.update { it.copy(theme = themeSettings) }
-            }
-        }
-        viewModelScope.launch {
-            themeSettingsManager.effectsFlow.collect { effectsSettings ->
-                _sudokuSettings.update { it.copy(effects = effectsSettings) }
-            }
-        }
-        viewModelScope.launch {
-            sudokuHandler.currentGameHandler.hasGameFlow().collect { hasGame->
-                _sudokuSettings.update { it.copy(hasContinueGame = hasGame) }
-            }
+    fun handleIntent(intent: SudokuIntent) {
+        when (intent) {
+            is SudokuIntent.SelectCell -> selectCell(intent.row, intent.col)
+            is SudokuIntent.InputNumber -> inputNumber(intent.number)
+            is SudokuIntent.ToggleInputMode -> toggleInputMode()
+            SudokuIntent.Undo -> undo()
+            is SudokuIntent.StartNewGame -> startNewGame(intent.difficulty)
+            SudokuIntent.ResumeGame -> resumeGame()
+            SudokuIntent.ResumeGameTimer -> resumeTimer()
+            SudokuIntent.PauseGameTimer -> pauseTimer()
+            SudokuIntent.StartGameTimer -> startTimer()
+            is SudokuIntent.UpdateTheme -> updateAndSaveTheme(intent.theme)
+            is SudokuIntent.SaveSettings -> saveSettings(intent.theme, intent.effects)
         }
     }
 
-    fun updateAndSaveTheme(newTheme: SudokuBoardTheme) {
+    private fun updateAndSaveTheme(newTheme: SudokuBoardTheme) {
         viewModelScope.launch {
             themeSettingsManager.saveThemeSettings(newTheme)
         }
     }
 
-    fun saveSettings(settings: SudokuSettings) {
+    private fun saveSettings(theme: SudokuBoardTheme, effects: SudokuEffects) {
         viewModelScope.launch {
-            themeSettingsManager.saveThemeSettings(settings.theme)
-            themeSettingsManager.saveEffectsSettings(settings.effects)
+            themeSettingsManager.saveThemeSettings(theme)
+            themeSettingsManager.saveEffectsSettings(effects)
         }
     }
 
-    fun selectCell(row: Int, col: Int) {
+    private fun selectCell(row: Int, col: Int) {
         _gameState.update { currentState ->
-            val currentGrid = currentState.boardState.grid
-            val newGrid = currentGrid.map { r ->
-                r.map { c ->
-                    c.copy(
-                        isHighlighted = false,
-                        notes = c.notes.toMutableSet().map { it.copy(isHighlighted = false) }
-                            .toSet()
-                    )
-                }.toMutableStateList()
-            }.toMutableStateList() // Deep copy and clear previous highlighting
-
             val selectedCell = currentState.boardState.getCell(row, col)
-            var selectedNumberForInput: Int? = currentState.selectedNumberForInput
-
-            selectedCell?.let { cell ->
-                // If the selected cell has a value (is not empty), highlight other cells with the same value
-                if (cell.value != 0) {
-                    selectedNumberForInput =
-                        cell.value // Set the number for input to the selected cell's value if not empty
-                    for (r in newGrid.indices) {
-                        for (c in newGrid[r].indices) {
-                            newGrid[r][c].isHighlighted = newGrid[r][c].value == cell.value
-                            newGrid[r][c].notes =
-                                newGrid[r][c].notes.map { it.copy(isHighlighted = it.value == cell.value) }
-                                    .toSet()
-                        }
-                    }
-                } else {
-                    selectedNumberForInput = null
-                    for (r in newGrid.indices) {
-                        for (c in newGrid[r].indices) {
-                            newGrid[r][c].isHighlighted = false
-                            newGrid[r][c].notes = newGrid[r][c].notes.map { it.copy(isHighlighted = false) }.toSet()
-                        }
-                    }
+            val selectedValue = selectedCell?.value ?: 0
+            
+            val newGrid = currentState.boardState.grid.map { r ->
+                r.map { c ->
+                    val isHighlighted = selectedValue != 0 && c.value == selectedValue
+                    c.copy(
+                        isHighlighted = isHighlighted,
+                        notes = c.notes.map { it.copy(isHighlighted = selectedValue != 0 && it.value == selectedValue) }.toSet()
+                    )
                 }
             }
 
-            val newBoardState = currentState.boardState.copy(grid = newGrid)
-
             currentState.copy(
-                boardState = newBoardState,
+                boardState = currentState.boardState.copy(grid = newGrid),
                 selectedCell = Pair(row, col),
-                selectedNumberForInput = selectedNumberForInput
+                selectedNumberForInput = if (selectedValue != 0) selectedValue else null
             )
         }
     }
 
-    fun toggleInputMode() {
+    private fun toggleInputMode() {
         _gameState.update { currentState ->
             currentState.copy(
-                inputMode = when (currentState.inputMode) {
-                    InputMode.VALUE -> InputMode.NOTES
-                    InputMode.NOTES -> InputMode.VALUE
-                }
+                inputMode = if (currentState.inputMode == InputMode.VALUE) InputMode.NOTES else InputMode.VALUE
             )
         }
     }
 
-    fun undo() {
+    private fun undo() {
         viewModelScope.launch {
             _gameState.update { currentState ->
                 if (currentState.history.isNotEmpty()) {
                     val lastChange = currentState.history.last()
-                    val newHistory = currentState.history.dropLast(1) // Remove the last change
+                    val newHistory = currentState.history.dropLast(1)
 
-                    // Create a deep copy of the grid
                     val newGrid = currentState.boardState.grid.map { r ->
-                        r.map { c -> c.copy() }.toMutableStateList()
-                    }.toMutableStateList()
+                        r.map { c -> c.copy() }.toMutableList()
+                    }.toMutableList()
 
-                    // Apply the old value back to the cell
                     val cellToUndo = newGrid[lastChange.rowIndex][lastChange.colIndex]
                     val updatedCell = cellToUndo.copy(
                         value = lastChange.oldValue,
-                        isError = lastChange.oldIsError, // Revert to old error state
-                        isHighlighted = lastChange.oldIsHighlighted // Revert to old highlighted state
+                        isError = lastChange.oldIsError,
+                        isHighlighted = lastChange.oldIsHighlighted
                     )
                     newGrid[lastChange.rowIndex][lastChange.colIndex] = updatedCell
 
-                    // Re-validate the board after undo
                     sudokuHandler.validateBoard(
                         grid = newGrid,
                         cellNumber = if (updatedCell.value != 0) updatedCell.value else cellToUndo.value,
@@ -159,46 +144,38 @@ class SudokuViewModel(
                         cellCol = lastChange.colIndex
                     )
 
-                    // Update available numbers
-                    val newAvailableNumbers =
-                        sudokuHandler.calculateAvailableNumbers(newGrid.map { newRow-> newRow.map { it.value } })
-                    // Add the undone change to the redo stack (optional)
-                    val newRedoStack = currentState.redoStack + lastChange
-
-                    val newBoardState = currentState.boardState.copy(grid = newGrid)
-
+                    val newAvailableNumbers = sudokuHandler.calculateAvailableNumbers(newGrid.map { row -> row.map { it.value } })
+                    
                     currentState.copy(
-                        boardState = newBoardState,
+                        boardState = currentState.boardState.copy(grid = newGrid.map { it.toList() }),
                         history = newHistory,
-                        redoStack = newRedoStack,
+                        redoStack = currentState.redoStack + lastChange,
                         availableNumbers = newAvailableNumbers,
                         isSolved = false
                     ).also {
-                        sudokuHandler.storeGameState(state = it, duration = sudokuSettings.value.duration)
+                        sudokuHandler.storeGameState(state = it, duration = it.duration)
                     }
-                } else {
-                    currentState // No history to undo
-                }
+                } else currentState
             }
         }
     }
 
-    fun inputNumber2(number: Int) {
+    private fun inputNumber(number: Int) {
         viewModelScope.launch {
             _gameState.update { currentState ->
-                val selected = currentState.selectedCell
-                if (selected != null) {
-                    val (row, col) = selected
-                    val currentCell = currentState.boardState.getCell(row, col)
+                val selected = currentState.selectedCell ?: return@update currentState
+                val (row, col) = selected
+                val currentCell = currentState.boardState.getCell(row, col)
 
-                    if (currentCell != null && !currentCell.isClue) {
-                        // Create a deep copy of the grid
-                        val newGrid = currentState.boardState.grid.map { r ->
-                            r.map { c -> c.copy() }.toMutableStateList()
-                        }.toMutableStateList()
-                        val cellToModify = newGrid[row][col]
-                        // Create a SudokuChange object before modifying the cell
-                        processNote(data = ProcessNoteData(
+                if (currentCell != null && !currentCell.isClue) {
+                    val newGrid = currentState.boardState.grid.map { r ->
+                        r.map { c -> c.copy() }.toMutableList()
+                    }.toMutableList()
+                    
+                    val cellToModify = newGrid[row][col]
+                    
+                    processNote(
+                        data = ProcessNoteData(
                             currentState = currentState,
                             row = row,
                             col = col,
@@ -208,39 +185,68 @@ class SudokuViewModel(
                             validateBoard = sudokuHandler.validateBoard::invoke,
                             calculateAvailableNumbers = sudokuHandler.calculateAvailableNumbers::invoke,
                             validateNoteBoard = sudokuHandler.validateNoteBoard::invoke,
-                        ), defaultCoroutineDispatcher =  sudokuHandler.defaultCoroutineDispatcher).also {
-                            sudokuHandler.storeGameState(it, sudokuSettings.value.duration)
-                        }
-                    } else {
-                        currentState // No change if no cell is selected or it's a clue
+                        ),
+                        defaultCoroutineDispatcher = sudokuHandler.defaultCoroutineDispatcher
+                    ).also {
+                        sudokuHandler.storeGameState(it, it.duration)
                     }
-                } else {
-                    currentState // No change if no cell is selected
-                }
+                } else currentState
             }
         }
     }
 
-    fun startNewGame(difficulty: Difficulty) {
+    private fun startNewGame(difficulty: Difficulty) {
         viewModelScope.launch {
+            _gameState.value = initializeNewGame(
+                difficulty = difficulty,
+                generateGameField = sudokuHandler.generateGameField::invoke,
+                calculateAvailableNumbers = sudokuHandler.calculateAvailableNumbers::invoke
+            )
             handleIntent(SudokuIntent.StartGameTimer)
-            _gameState.update {
-                initializeNewGame(
-                    difficulty = difficulty,
-                    generateGameField = sudokuHandler.generateGameField::invoke,
-                    calculateAvailableNumbers = sudokuHandler.calculateAvailableNumbers::invoke
-                )
+        }
+    }
+
+    private fun resumeGame() {
+        viewModelScope.launch {
+            sudokuHandler.currentGameHandler.loadGame()?.let { game ->
+                _gameState.value = game
+                handleIntent(SudokuIntent.StartGameTimer)
             }
         }
     }
 
+    private fun startTimer() {
+        if (_timerState.value == TimerState.Stopped) {
+            _timerState.value = TimerState.Running
+            _isPaused.value = false
+            startCounting()
+        } else {
+            resumeTimer()
+        }
+    }
+
+    private fun pauseTimer() {
+        if (_timerState.value == TimerState.Running) {
+            _isPaused.value = true
+            _timerState.value = TimerState.Paused
+            timerJob?.cancel()
+        }
+    }
+
+    private fun resumeTimer() {
+        if (_timerState.value == TimerState.Paused) {
+            _isPaused.value = false
+            _timerState.value = TimerState.Running
+            startCounting()
+        }
+    }
 
     private fun startCounting() {
+        timerJob?.cancel()
         timerJob = viewModelScope.launch {
-            while (isActive && _sudokuSettings.value.timerState == TimerState.Running) {
+            while (isActive && _timerState.value == TimerState.Running) {
                 delay(1.seconds)
-                _sudokuSettings.value =
-                    _sudokuSettings.value.copy(duration = _sudokuSettings.value.duration + 1.seconds)
+                _gameState.update { it.copy(duration = it.duration + 1.seconds) }
             }
         }
     }
@@ -250,66 +256,27 @@ class SudokuViewModel(
         timerJob?.cancel()
     }
 
-    fun handleIntent(intent: SudokuIntent) {
-        viewModelScope.launch {
-            when (intent) {
-                SudokuIntent.PauseGameTimer -> {
-                    if (_sudokuSettings.value.timerState == TimerState.Running) {
-                        _sudokuSettings.update {
-                            it.copy(isPaused = true, timerState = TimerState.Paused)
-                        }
-                        timerJob?.cancel() // Cancel the counting job
-                    }
-                }
-                SudokuIntent.ResumeGame -> {
-                    sudokuHandler.currentGameHandler.loadGame()?.let { game ->
-                        _gameState.update { game }
-                    }
-                    handleIntent(SudokuIntent.StartGameTimer)
-                }
-
-                SudokuIntent.ResumeGameTimer -> {
-                    if (_sudokuSettings.value.timerState == TimerState.Paused) {
-                        _sudokuSettings.update {
-                            it.copy(isPaused = false, timerState = TimerState.Running)
-                        }
-                        startCounting()
-                    }
-                }
-                SudokuIntent.StartGameTimer -> {
-                    if (_sudokuSettings.value.timerState == TimerState.Stopped) {
-                        _sudokuSettings.update {
-                            it.copy(
-                                timerState = TimerState.Running,
-                                isPaused = false,
-                                duration = gameState.value.duration
-                            )
-                        }
-                        startCounting()
-                    } else {
-                        handleIntent(SudokuIntent.ResumeGameTimer)
-                    }
-                }
-            }
-        }
-    }
-
-
-    data class SudokuSettings(
+    data class SudokuUiState(
+        val game: SudokuGameState,
         val hasContinueGame: Boolean = false,
         val theme: SudokuBoardTheme = SudokuBoardTheme(),
         val effects: SudokuEffects = SudokuEffects(),
         val timerState: TimerState = TimerState.Stopped,
         val isPaused: Boolean = false,
-        val duration: Duration = Duration.ZERO,
     )
 
-
     sealed class SudokuIntent {
-        data object ResumeGame: SudokuIntent()
-        data object ResumeGameTimer: SudokuIntent()
-        data object PauseGameTimer: SudokuIntent()
-        data object StartGameTimer: SudokuIntent()
+        data class SelectCell(val row: Int, val col: Int) : SudokuIntent()
+        data class InputNumber(val number: Int) : SudokuIntent()
+        data object ToggleInputMode : SudokuIntent()
+        data object Undo : SudokuIntent()
+        data class StartNewGame(val difficulty: Difficulty) : SudokuIntent()
+        data object ResumeGame : SudokuIntent()
+        data object ResumeGameTimer : SudokuIntent()
+        data object PauseGameTimer : SudokuIntent()
+        data object StartGameTimer : SudokuIntent()
+        data class UpdateTheme(val theme: SudokuBoardTheme) : SudokuIntent()
+        data class SaveSettings(val theme: SudokuBoardTheme, val effects: SudokuEffects) : SudokuIntent()
     }
 
     enum class TimerState {
