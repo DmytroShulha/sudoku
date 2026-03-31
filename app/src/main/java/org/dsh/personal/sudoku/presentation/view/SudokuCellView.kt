@@ -8,6 +8,7 @@ import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -48,9 +49,15 @@ fun SudokuCellView(
     effects: SudokuEffects
 ) {
     val backgroundColor = when {
-        isSelected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
-        cell.isHighlighted -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+        isSelected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
+        cell.isHighlighted -> MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
         else -> Color.Transparent
+    }
+
+    val borderColor = if (isSelected) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        Color.Transparent
     }
 
     PerformEffects(cell, effects, isSelected)
@@ -95,9 +102,9 @@ fun SudokuCellView(
                 cell.isClue -> MaterialTheme.colorScheme.onSurface // Clues are neutral
                 else -> MaterialTheme.colorScheme.primary // User input is accented
             }
-            
+
             val fontWeight = if (cell.isClue) FontWeight.Bold else FontWeight.Medium
-            
+
             Text(
                 text = cell.value.toString(),
                 color = textColor,
@@ -110,6 +117,18 @@ fun SudokuCellView(
             )
         } else if (cell.notes.isNotEmpty()) {
             NotesGrid(cell.notes, boxSize)
+        }
+
+        // Selection border overlay
+        if (isSelected) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .border(
+                        width = 2.dp,
+                        color = borderColor
+                    )
+            )
         }
     }
 }

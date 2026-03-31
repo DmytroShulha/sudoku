@@ -49,8 +49,6 @@ import org.dsh.personal.sudoku.presentation.settings.SudokuSettingsScreen
 import org.dsh.personal.sudoku.presentation.statistic.StatisticViewModel
 import org.dsh.personal.sudoku.presentation.statistic.SudokuAnalyticsScreen
 import org.dsh.personal.sudoku.presentation.success.SuccessScreen
-import org.dsh.personal.sudoku.presentation.view.ErrorState
-import org.dsh.personal.sudoku.presentation.view.LoadingState
 import org.dsh.personal.sudoku.presentation.view.ThemeSettingsDialog
 import org.dsh.personal.sudoku.theme.PersonalTheme
 import org.koin.androidx.compose.koinViewModel
@@ -90,7 +88,7 @@ object SudokuFeatureEntry {
             }
         }
 
-        val settings by viewModel.sudokuSettings.collectAsState()
+        val settings by viewModel.sudokuSettings.collectAsStateWithLifecycle()
         val isDark = if (settings.theme.useSystem) isSystemInDarkTheme() else settings.theme.isDark
         val useMaterial3Colors = settings.theme.isDynamic
         val view = LocalView.current
@@ -257,21 +255,13 @@ object SudokuFeatureEntry {
     fun SudokuGameStatistic(navigator: Navigator) {
         val viewModel: StatisticViewModel = koinViewModel()
         val state by viewModel.gameStat.collectAsStateWithLifecycle()
-        val gameState = state.gameStats
-        when {
-            state.isLoading -> LoadingState()
-            !state.isLoading && gameState != null -> {
-                SudokuAnalyticsScreen(
-                    stats = gameState,
-                    onNavigateBack = navigator::goBack,
-                    onClearStat = viewModel::clearStat,
-                )
-            }
 
-            else -> ErrorState(
-                errorMessage = stringResource(R.string.error_loading_statistic), retry = false
-            ) { }
-        }
+        SudokuAnalyticsScreen(
+            stats = state.gameStats,
+            onNavigateBack = navigator::goBack,
+            onClearStat = viewModel::clearStat,
+            isLoading = state.isLoading
+        )
     }
 }
 

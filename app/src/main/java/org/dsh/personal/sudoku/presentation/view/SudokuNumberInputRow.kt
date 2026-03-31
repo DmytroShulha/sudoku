@@ -87,7 +87,7 @@ fun SudokuNumberInputRow(
             onNumberClick = data.onNumberClick
         )
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(24.dp))
 
         Row(
             modifier = modifier.fillMaxWidth().padding(horizontal = 4.dp),
@@ -188,7 +188,7 @@ private fun SudokuFunctionalButton(
 ) {
     Button(
         onClick = buttonClick,
-        modifier = modifier.height(48.dp),
+        modifier = modifier.height(52.dp),
         colors = colors,
         shape = CircleShape,
         contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)
@@ -200,7 +200,7 @@ private fun SudokuFunctionalButton(
             Icon(
                 imageVector = data.icon,
                 contentDescription = stringResource(data.contentDescription),
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(22.dp)
             )
             Spacer(Modifier.width(6.dp))
             Text(
@@ -227,7 +227,7 @@ fun RowScope.NumberInputButton(
         targetValue = if (numberState.isPossible) {
             MaterialTheme.colorScheme.onSurface
         } else {
-            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         }, animationSpec = tween(durationMillis = ANIMATION_DURATION_300)
     )
     val boxColor by animateColorAsState(
@@ -256,7 +256,7 @@ fun RowScope.NumberInputButton(
     ) {
         Surface(
             modifier = Modifier
-                .size(36.dp)
+                .size(42.dp)
                 .clip(CircleShape)
                 .clickable { onNumberClick(numberState.number) },
             shape = CircleShape,
@@ -266,7 +266,7 @@ fun RowScope.NumberInputButton(
             Box(contentAlignment = Alignment.Center) {
                 Text(
                     text = numberState.number.toString(),
-                    fontSize = 18.sp,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold,
                     textAlign = TextAlign.Center,
                     color = textColor
@@ -278,8 +278,8 @@ fun RowScope.NumberInputButton(
             Surface(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .offset(x = 4.dp, y = (-4).dp)
-                    .size(18.dp),
+                    .offset(x = 6.dp, y = (-6).dp)
+                    .size(20.dp),
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 2.dp,
@@ -293,7 +293,7 @@ fun RowScope.NumberInputButton(
                     Text(
                         text = numberState.availableCount.toString(),
                         style = TextStyle(
-                            fontSize = 10.sp,
+                            fontSize = 11.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = countColor,
                             textAlign = TextAlign.Center,
