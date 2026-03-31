@@ -1,5 +1,6 @@
 package org.dsh.personal.sudoku.presentation.game
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -11,20 +12,27 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.dsh.personal.sudoku.R
 import org.dsh.personal.sudoku.domain.entity.SudokuGameState
 import org.dsh.personal.sudoku.presentation.SudokuViewModel
+import org.dsh.personal.sudoku.presentation.capitalizeFirstLetter
 import org.dsh.personal.sudoku.presentation.view.Dimens
 import org.dsh.personal.sudoku.presentation.view.SudokuBoardView
 import org.dsh.personal.sudoku.presentation.view.SudokuNumberInputRow
@@ -70,15 +78,24 @@ private fun PhoneSudokuGame(
             Box(
                 modifier = Modifier.fillMaxSize()
             ) {
-                IconButton(
-                    onClick = callbacks.resumeGame, modifier = Modifier.align(Alignment.Center)
-                ) {
-                    Icon(
-                        Icons.Outlined.PlayArrow,
-                        contentDescription = stringResource(R.string.play),
-                        modifier = Modifier.size(72.dp)
-                    )
-                }
+                // Blurred board preview
+                SudokuBoardView(
+                    modifier = Modifier
+                        .padding(top = Dimens.Medium, start = Dimens.Small, end = Dimens.Small)
+                        .blur(16.dp),
+                    board = gameState.boardState.grid,
+                    selectedCellPosition = null,
+                    onCellClick = { _, _ -> },
+                    settings = sudokuSettings,
+                )
+
+                // Pause overlay
+                PauseOverlay(
+                    modifier = Modifier.align(Alignment.Center),
+                    difficulty = gameState.difficulty.toString(),
+                    duration = sudokuSettings.duration,
+                    onResumeClick = callbacks.resumeGame
+                )
             }
         } else {
             SudokuBoardView(
@@ -121,19 +138,24 @@ private fun TabletSudokuGame(
                 .padding(Dimens.Large) // Add padding
         ) {
             if (sudokuSettings.isPaused) {
-                Box(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    IconButton(
-                        onClick = callbacks.resumeGame, modifier = Modifier.align(Alignment.Center)
-                    ) {
-                        Icon(
-                            Icons.Outlined.PlayArrow,
-                            contentDescription = stringResource(R.string.play),
-                            modifier = Modifier.size(72.dp)
-                        )
-                    }
-                }
+                // Blurred board preview
+                SudokuBoardView(
+                    board = gameState.boardState.grid,
+                    selectedCellPosition = null,
+                    onCellClick = { _, _ -> },
+                    settings = sudokuSettings,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .blur(16.dp)
+                )
+
+                // Pause overlay
+                PauseOverlay(
+                    modifier = Modifier.align(Alignment.Center),
+                    difficulty = gameState.difficulty.toString(),
+                    duration = sudokuSettings.duration,
+                    onResumeClick = callbacks.resumeGame
+                )
             } else {
                 SudokuBoardView(
                     board = gameState.boardState.grid,
@@ -168,4 +190,96 @@ private fun TabletSudokuGame(
             }
         }
     }
+}
+
+@Composable
+private fun PauseOverlay(
+    modifier: Modifier = Modifier,
+    difficulty: String,
+    duration: kotlin.time.Duration,
+    onResumeClick: () -> Unit
+) {
+    Surface(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.extraLarge,
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 6.dp,
+        shadowElevation = 8.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(24.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.game_paused),
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Difficulty info
+                Text(
+                    text = difficulty.capitalizeFirstLetter(),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                // Time info
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AccessTime,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = formatDuration(duration),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            // Resume button
+            Surface(
+                onClick = onResumeClick,
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primaryContainer,
+                tonalElevation = 2.dp
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        Icons.Outlined.PlayArrow,
+                        contentDescription = stringResource(R.string.play),
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.tap_to_resume),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun formatDuration(duration: kotlin.time.Duration): String {
+    val minutes = duration.inWholeMinutes
+    val seconds = duration.inWholeSeconds % 60
+    return String.format(java.util.Locale.getDefault(), "%02d:%02d", minutes, seconds)
 }

@@ -1,5 +1,8 @@
 package org.dsh.personal.sudoku.presentation.success
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -25,15 +28,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import org.dsh.personal.sudoku.R
 import org.dsh.personal.sudoku.domain.entity.Difficulty
 import org.dsh.personal.sudoku.domain.entity.SudokuBoardState
@@ -41,6 +49,7 @@ import org.dsh.personal.sudoku.domain.entity.SudokuGameState
 import org.dsh.personal.sudoku.domain.entity.SudokuGameStatistic
 import org.dsh.personal.sudoku.presentation.capitalizeFirstLetter
 import org.dsh.personal.sudoku.presentation.view.Dimens
+import org.dsh.personal.sudoku.presentation.view.toFormattedString
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -52,74 +61,104 @@ fun SuccessScreen(
     onShareClicked: (() -> Unit)? = null,
     modifier: Modifier
 ) {
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(Dimens.Large)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            // Trophy Icon
-            Icon(
-                imageVector = Icons.TwoTone.EmojiEvents,
-                contentDescription = stringResource(R.string.congratulations),
-                modifier = Modifier.size(120.dp),
-                tint = MaterialTheme.colorScheme.primary
+    val trophyScale = remember { Animatable(0f) }
+    val trophyRotation = remember { Animatable(-15f) }
+
+    LaunchedEffect(Unit) {
+        // Entrance animation with bounce
+        trophyScale.animateTo(
+            targetValue = 1f,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessMedium
             )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Congratulatory Message
-            Text(
-                text = stringResource(R.string.congratulations),
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
+        )
+        // Subtle rotation for celebration effect
+        trophyRotation.animateTo(
+            targetValue = 0f,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioLowBouncy,
+                stiffness = Spring.StiffnessLow
             )
-            Text(
-                text = stringResource(R.string.sudoku_solved),
-                fontSize = 18.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+        )
+    }
 
-            Spacer(modifier = Modifier.height(32.dp))
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(Dimens.Large)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        // Trophy Icon with celebration animation
+        Icon(
+            imageVector = Icons.TwoTone.EmojiEvents,
+            contentDescription = stringResource(R.string.congratulations),
+            modifier = Modifier
+                .size(Dimens.TrophyIconLarge)
+                .graphicsLayer(
+                    scaleX = trophyScale.value,
+                    scaleY = trophyScale.value,
+                    rotationZ = trophyRotation.value
+                ),
+            tint = MaterialTheme.colorScheme.primary
+        )
 
-            // Game Statistics Section
-            SectionStatistic(gameStats)
+        Spacer(modifier = Modifier.height(Dimens.XLarge))
 
-            Spacer(modifier = Modifier.height(40.dp))
+        // Congratulatory Message
+        Text(
+            text = stringResource(R.string.congratulations),
+            style = MaterialTheme.typography.headlineMedium.copy(
+                fontWeight = FontWeight.Bold
+            ),
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.semantics { heading() }
+        )
+        Text(
+            text = stringResource(R.string.sudoku_solved),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
 
-            // Action Buttons
-            GameContinueButtons(onNewGameClicked, onMainMenuClicked)
+        Spacer(modifier = Modifier.height(Dimens.XXLarge))
 
-            // Optional: Share Button
-            onShareClicked?.let {
-                Spacer(modifier = Modifier.height(Dimens.Large))
-                Button(
-                    onClick = it,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
-                ) {
-                    Text(stringResource(R.string.share_achievement), fontSize = 16.sp)
-                }
+        // Game Statistics Section
+        SectionStatistic(gameStats)
+
+        Spacer(modifier = Modifier.height(Dimens.XXXLarge))
+
+        // Action Buttons
+        GameContinueButtons(onNewGameClicked, onMainMenuClicked)
+
+        // Optional: Share Button
+        onShareClicked?.let {
+            Spacer(modifier = Modifier.height(Dimens.Large))
+            Button(
+                onClick = it,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+            ) {
+                Text(
+                    stringResource(R.string.share_achievement),
+                    style = MaterialTheme.typography.labelLarge
+                )
             }
         }
-
+    }
 }
 
 @Composable
 private fun GameContinueButtons(onNewGameClicked: () -> Unit, onMainMenuClicked: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly
+        horizontalArrangement = Arrangement.spacedBy(Dimens.Medium)
     ) {
         // New Game Button
         Button(
             onClick = onNewGameClicked,
-            modifier = Modifier
-                .weight(1f)
-                .padding(end = 8.dp),
+            modifier = Modifier.weight(1f),
             contentPadding = PaddingValues(vertical = Dimens.BigMedium)
         ) {
             Icon(
@@ -128,15 +167,16 @@ private fun GameContinueButtons(onNewGameClicked: () -> Unit, onMainMenuClicked:
                 modifier = Modifier.size(ButtonDefaults.IconSize)
             )
             Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-            Text(stringResource(R.string.new_game), fontSize = 16.sp)
+            Text(
+                stringResource(R.string.new_game),
+                style = MaterialTheme.typography.labelLarge
+            )
         }
 
         // Main Menu Button
         OutlinedButton(
             onClick = onMainMenuClicked,
-            modifier = Modifier
-                .weight(1f)
-                .padding(start = Dimens.Medium),
+            modifier = Modifier.weight(1f),
             contentPadding = PaddingValues(vertical = Dimens.BigMedium)
         ) {
             Icon(
@@ -145,7 +185,10 @@ private fun GameContinueButtons(onNewGameClicked: () -> Unit, onMainMenuClicked:
                 modifier = Modifier.size(ButtonDefaults.IconSize)
             )
             Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-            Text(stringResource(R.string.main_menu), fontSize = 16.sp)
+            Text(
+                stringResource(R.string.main_menu),
+                style = MaterialTheme.typography.labelLarge
+            )
         }
     }
 }
@@ -153,16 +196,23 @@ private fun GameContinueButtons(onNewGameClicked: () -> Unit, onMainMenuClicked:
 @Composable
 private fun SectionStatistic(gameStats: SudokuGameState) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics {
+                contentDescription = "Game statistics summary"
+            },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(Dimens.Large),
             horizontalAlignment = Alignment.Start,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(Dimens.BigMedium)
         ) {
-            StatisticRow(stringResource(R.string.time_taken), gameStats.duration.toString())
+            StatisticRow(
+                stringResource(R.string.time_taken),
+                gameStats.duration.toFormattedString()
+            )
             StatisticRow(
                 stringResource(R.string.difficulty_c),
                 gameStats.difficulty.toString().capitalizeFirstLetter()
@@ -183,20 +233,24 @@ private fun SectionStatistic(gameStats: SudokuGameState) {
 fun StatisticRow(label: String, value: String) {
     // Row for displaying a single statistic
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {},
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = label,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium,
+            style = MaterialTheme.typography.bodyLarge.copy(
+                fontWeight = FontWeight.Medium
+            ),
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
             text = value,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.bodyLarge.copy(
+                fontWeight = FontWeight.SemiBold
+            ),
             color = MaterialTheme.colorScheme.onSurface
         )
     }

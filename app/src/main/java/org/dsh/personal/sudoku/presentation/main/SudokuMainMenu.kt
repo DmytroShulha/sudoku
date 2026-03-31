@@ -1,5 +1,10 @@
 package org.dsh.personal.sudoku.presentation.main
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,7 +20,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Info
@@ -24,6 +28,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -49,8 +54,8 @@ import org.dsh.personal.sudoku.domain.entity.Difficulty
 import org.dsh.personal.sudoku.R
 import org.dsh.personal.sudoku.presentation.view.Dimens
 
-private const val WeightSmall = .2f
-private const val WeightMedium = .5f
+private const val HeaderSpacerWeight = 0.5f
+private const val ContentSpacerWeight = 0.2f
 
 data class SudokuMainMenuData(
     val onStartGame: (difficulty: Difficulty) -> Unit,
@@ -59,6 +64,19 @@ data class SudokuMainMenuData(
     val onStatisticClick: () -> Unit,
     val hasContinueGame: Boolean,
     val onResumeGame: () -> Unit,
+)
+
+enum class MenuButtonType {
+    PRIMARY,
+    SECONDARY
+}
+
+private data class MenuItem(
+    val textRes: Int,
+    val icon: ImageVector,
+    val contentDescriptionRes: Int,
+    val onClick: () -> Unit,
+    val type: MenuButtonType = MenuButtonType.SECONDARY
 )
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,14 +97,17 @@ fun SudokuMainMenu(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Spacer(Modifier.weight(WeightMedium))
-            Image(painter = painterResource(id = R.drawable.ic_launcher_foreground), contentDescription = null)
+            Spacer(Modifier.weight(HeaderSpacerWeight))
+            Image(
+                painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                contentDescription = stringResource(R.string.app_icon, stringResource(R.string.app_name))
+            )
             Text(
                 text = stringResource(R.string.app_name),
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.primary,
             )
-            Spacer(Modifier.weight(WeightSmall))
+            Spacer(Modifier.weight(ContentSpacerWeight))
 
             SudokuMainMenuItems(data) { showNewGame = true }
         }
@@ -95,9 +116,9 @@ fun SudokuMainMenu(
             ShowNewGame(
                 sheetState = sheetState,
                 data = data,
-                onDismissBottom = { showNewGame = false })
+                onDismissBottom = { showNewGame = false }
+            )
         }
-
     }
 }
 
@@ -106,13 +127,11 @@ fun SudokuMainMenu(
 private fun ShowNewGame(
     sheetState: SheetState,
     data: SudokuMainMenuData,
-    onDismissBottom: ()->Unit,
+    onDismissBottom: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
 
-    @Composable
-    @OptIn(ExperimentalMaterial3Api::class)
-    fun onDifficultySelected(): (Difficulty) -> Unit = { selectedDifficulty ->
+    val onDifficultySelected: (Difficulty) -> Unit = { selectedDifficulty ->
         scope.launch {
             sheetState.hide()
         }.invokeOnCompletion {
@@ -123,9 +142,7 @@ private fun ShowNewGame(
         }
     }
 
-    @Composable
-    @OptIn(ExperimentalMaterial3Api::class)
-    fun onDismiss(): () -> Unit = {
+    val onDismiss: () -> Unit = {
         scope.launch {
             sheetState.hide()
         }.invokeOnCompletion {
@@ -136,11 +153,13 @@ private fun ShowNewGame(
     }
 
     ModalBottomSheet(
-        sheetState = sheetState, onDismissRequest = onDismissBottom) {
+        sheetState = sheetState,
+        onDismissRequest = onDismissBottom
+    ) {
         DifficultySelectionSheet(
             difficulties = Difficulty.entries,
-            onDifficultySelected = onDifficultySelected(),
-            onDismiss = onDismiss()
+            onDifficultySelected = onDifficultySelected,
+            onDismiss = onDismiss
         )
     }
 }
@@ -150,48 +169,86 @@ private fun SudokuMainMenuItems(
     data: SudokuMainMenuData,
     onNewGame: () -> Unit,
 ) {
-    if (data.hasContinueGame) {
-        MenuButton(
-            text = stringResource(R.string.resume_game),
-            icon = Icons.Filled.PlayArrow,
-            onClick = data.onResumeGame,
-            contentDescription = stringResource(R.string.resume_game_context_desc)
-        )
-        Spacer(modifier = Modifier.height(Dimens.Large))
+    val menuItems = remember(data) {
+        buildList {
+            if (data.hasContinueGame) {
+                add(
+                    MenuItem(
+                        textRes = R.string.resume_game,
+                        icon = Icons.Filled.PlayArrow,
+                        contentDescriptionRes = R.string.resume_game_context_desc,
+                        onClick = data.onResumeGame,
+                        type = MenuButtonType.PRIMARY
+                    )
+                )
+            }
+            add(
+                MenuItem(
+                    textRes = R.string.new_game,
+                    icon = Icons.Filled.AddCircleOutline,
+                    contentDescriptionRes = R.string.new_game_context_desc,
+                    onClick = onNewGame,
+                    type = MenuButtonType.PRIMARY
+                )
+            )
+            add(
+                MenuItem(
+                    textRes = R.string.settings,
+                    icon = Icons.Filled.Settings,
+                    contentDescriptionRes = R.string.settings_content_desc,
+                    onClick = data.onSettingsClick
+                )
+            )
+            add(
+                MenuItem(
+                    textRes = R.string.statistics,
+                    icon = Icons.Filled.BarChart,
+                    contentDescriptionRes = R.string.statistics_content_desc,
+                    onClick = data.onStatisticClick
+                )
+            )
+            add(
+                MenuItem(
+                    textRes = R.string.about,
+                    icon = Icons.Filled.Info,
+                    contentDescriptionRes = R.string.about_content_desc,
+                    onClick = data.onAboutClick
+                )
+            )
+        }
     }
 
-    MenuButton(
-        text = stringResource(R.string.new_game),
-        icon = Icons.Filled.AddCircleOutline,
-        onClick = onNewGame,
-        contentDescription = stringResource(R.string.new_game_context_desc)
-    )
-    Spacer(modifier = Modifier.height(16.dp))
+    Column(
+        verticalArrangement = Arrangement.spacedBy(Dimens.Large)
+    ) {
+        menuItems.forEachIndexed { index, item ->
+            val isResumeButton = index == 0 && data.hasContinueGame
 
-    MenuButton(
-        text = stringResource(R.string.settings),
-        icon = Icons.Filled.Settings,
-        onClick = data.onSettingsClick,
-        contentDescription = stringResource(R.string.settings_content_desc)
-    )
-    Spacer(modifier = Modifier.height(Dimens.Large))
-
-    MenuButton(
-        text = stringResource(R.string.statistics),
-        icon = Icons.Filled.BarChart,
-        onClick = data.onStatisticClick,
-        contentDescription = stringResource(R.string.statistics_content_desc)
-    )
-    Spacer(modifier = Modifier.height(Dimens.Large))
-
-    MenuButton(
-        text = stringResource(R.string.about),
-        icon = Icons.Filled.Info,
-        onClick = data.onAboutClick,
-        contentDescription = stringResource(R.string.about_content_desc)
-    )
-
-    Spacer(modifier = Modifier.height(Dimens.Large))
+            if (isResumeButton) {
+                AnimatedVisibility(
+                    visible = true,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut()
+                ) {
+                    MenuButton(
+                        text = stringResource(item.textRes),
+                        icon = item.icon,
+                        onClick = item.onClick,
+                        contentDescription = stringResource(item.contentDescriptionRes),
+                        type = item.type
+                    )
+                }
+            } else {
+                MenuButton(
+                    text = stringResource(item.textRes),
+                    icon = item.icon,
+                    onClick = item.onClick,
+                    contentDescription = stringResource(item.contentDescriptionRes),
+                    type = item.type
+                )
+            }
+        }
+    }
 }
 
 @Composable
@@ -200,43 +257,70 @@ fun MenuButton(
     icon: ImageVector,
     onClick: () -> Unit,
     contentDescription: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    type: MenuButtonType = MenuButtonType.SECONDARY
 ) {
-    Button(
-        onClick = onClick,
-        modifier = modifier
-            .fillMaxWidth()
-            .height(60.dp),
-        shape = MaterialTheme.shapes.medium,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        ),
-        contentPadding = PaddingValues(horizontal = Dimens.Large, vertical = Dimens.Medium)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start,
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = contentDescription,
-                modifier = Modifier.size(Dimens.Icon),
-            )
-            Spacer(Modifier.width(16.dp))
-            Text(
-                text = text,
-                style = MaterialTheme.typography.titleLarge,
-                fontSize = 18.sp,
-            )
-
-            Spacer(Modifier.weight(1f))
-            Icon(
-                imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
-                contentDescription = null,
-                modifier = Modifier.size(Dimens.Icon)
-            )
+    when (type) {
+        MenuButtonType.PRIMARY -> {
+            Button(
+                onClick = onClick,
+                modifier = modifier
+                    .fillMaxWidth()
+                    .height(60.dp),
+                shape = MaterialTheme.shapes.medium,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                ),
+                contentPadding = PaddingValues(horizontal = Dimens.Large, vertical = Dimens.Medium)
+            ) {
+                MenuButtonContent(
+                    icon = icon,
+                    text = text,
+                    contentDescription = contentDescription
+                )
+            }
         }
+        MenuButtonType.SECONDARY -> {
+            FilledTonalButton(
+                onClick = onClick,
+                modifier = modifier
+                    .fillMaxWidth()
+                    .height(60.dp),
+                shape = MaterialTheme.shapes.medium,
+                contentPadding = PaddingValues(horizontal = Dimens.Large, vertical = Dimens.Medium)
+            ) {
+                MenuButtonContent(
+                    icon = icon,
+                    text = text,
+                    contentDescription = contentDescription
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MenuButtonContent(
+    icon: ImageVector,
+    text: String,
+    contentDescription: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            modifier = Modifier.size(Dimens.Icon),
+        )
+        Spacer(Modifier.width(Dimens.Large))
+        Text(
+            text = text,
+            style = MaterialTheme.typography.titleLarge,
+            fontSize = 18.sp,
+        )
     }
 }

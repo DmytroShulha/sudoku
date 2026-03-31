@@ -40,6 +40,10 @@
     <string name="n_a">N/A</string>
     <string name="select_difficulty_level">Select %1$s</string>
     <string name="select_difficulty">Select Difficulty</string>
+    <string name="difficulty_easy_desc">Perfect for beginners - many cells filled</string>
+    <string name="difficulty_medium_desc">Balanced challenge - moderate complexity</string>
+    <string name="difficulty_hard_desc">Advanced puzzles - requires strategy</string>
+    <string name="difficulty_expert_desc">Ultimate challenge - for masters only</string>
     <string name="resume_game">Resume Game</string>
     <string name="resume_game_context_desc">Resume the last played game</string>
     <string name="new_game">New Game</string>
@@ -81,4 +85,26 @@
     <string name="play_store_game_url">https://play.google.com/store/apps/details?id=org.dsh.personal.sudoku</string>
     <string name="play_store_url">https://play.google.com/store/apps/developer?id=Dmytro+Shulha</string>
     <string name="more_games">More Games</string>
+    <string name="no_games_played">No Games Played Yet</string>
+    <string name="start_playing_message">Start a game to see your statistics here!</string>
+    <string name="play_now">Play Now</string>
+    <string name="loading_statistics">Loading Statistics…</string>
+    <string name="use_system_default_desc">Follow your device\'s light/dark mode settings</string>
+    <string name="dark_theme_desc">Use dark colors across the app</string>
+    <string name="dynamic_color_desc">Match colors to your device wallpaper</string>
+    <string name="use_haptic_desc">Vibrate on button presses and game actions</string>
+    <string name="use_sound_desc">Play sounds for game events</string>
+    <string name="settings_saved">Settings saved successfully!</string>
+    <string name="no_changes">No changes to save</string>
+    <string name="rate_app">Rate on Play Store</string>
+    <string name="share_app">Share App</string>
+    <string name="app_information">App Information</string>
+    <string name="links">Links</string>
+    <string name="could_not_open_link">Could not open link</string>
+    <string name="game_paused">Game Paused</string>
+    <string name="tap_to_resume">Tap to resume</string>
+    <string name="difficulty_icon_desc">%1$s difficulty icon</string>
+    <string name="leaderboard_icon_desc">Leaderboard icon</string>
+    <string name="share_app_text">Check out %1$s: %2$s</string>
+    <string name="share_app_chooser_title">Share %1$s</string>
 </resources>
